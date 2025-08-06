@@ -45,8 +45,12 @@ Thumbs.db
 
 # Environment variables
 .env
+.env.local
 
 # Secret files
 secrets/
 *.key
 *.pem
+
+# Log files
+debug.log
