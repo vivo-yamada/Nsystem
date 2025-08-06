@@ -6,7 +6,10 @@
       "Bash(source:*)",
       "Bash(pip install:*)",
       "Bash(django-admin startproject:*)",
-      "Bash(python manage.py startapp:*)"
+      "Bash(python manage.py startapp:*)",
+      "Bash(python:*)",
+      "Bash(sudo apt-get:*)",
+      "Bash(sudo apt-get install:*)"
     ],
     "deny": []
   }

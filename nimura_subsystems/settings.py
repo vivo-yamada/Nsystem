@@ -87,9 +87,11 @@ DATABASES = {
         'USER': os.getenv('DB_USER', 'your_username'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'your_password'),
         'HOST': os.getenv('DB_HOST', 'your_server_name'),
-        'PORT': os.getenv('DB_PORT', '1433'),
+        'PORT': '',  # SQL Server Expressは動的ポートを使用
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
+            # Windows環境で実行する場合は以下を追加
+            # 'extra_params': 'TrustServerCertificate=yes',
         },
     }
 }
