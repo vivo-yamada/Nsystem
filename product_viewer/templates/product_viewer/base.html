@@ -112,7 +112,11 @@
                         <i class="fas fa-chevron-right"></i>
                     </button>
                     
-                    <div id="modalInfo" class="mt-3"></div>
+                    <!-- 備考情報 -->
+                    <div id="modalRemarks" class="mt-3 text-muted" style="display: none;">
+                        <i class="fas fa-comment me-2"></i>
+                        <span id="modalRemarksText"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -127,18 +131,30 @@
         // 画像リストを初期化
         function initImageList() {
             imageList = [];
-            const photos = document.querySelectorAll('.image-card img[onclick]');
-            photos.forEach((img, index) => {
-                const onclickAttr = img.getAttribute('onclick');
-                if (onclickAttr) {
-                    const match = onclickAttr.match(/showImage\('([^']+)',\s*'([^']+)',\s*'([^']+)'\)/);
-                    if (match) {
-                        imageList.push({
-                            src: match[1],
-                            productCode: match[2],
-                            photoCode: match[3],
-                            element: img
-                        });
+            const photos = document.querySelectorAll('.image-card');
+            photos.forEach((card, index) => {
+                const img = card.querySelector('img[onclick]');
+                if (img) {
+                    const onclickAttr = img.getAttribute('onclick');
+                    if (onclickAttr) {
+                        const match = onclickAttr.match(/showImage\('([^']+)',\s*'([^']+)',\s*'([^']+)'\)/);
+                        if (match) {
+                            // 備考情報を取得
+                            const remarksElement = card.querySelector('.fa-comment');
+                            let remarks = '';
+                            if (remarksElement) {
+                                const parentElement = remarksElement.parentNode;
+                                remarks = parentElement.textContent.replace(/\s*\S+\s*/, '').trim(); // アイコン文字を除去
+                            }
+                            
+                            imageList.push({
+                                src: match[1],
+                                productCode: match[2],
+                                photoCode: match[3],
+                                remarks: remarks,
+                                element: img
+                            });
+                        }
                     }
                 }
             });
@@ -172,6 +188,17 @@
             // カウンターを更新
             document.getElementById('modalCounter').textContent = 
                 `(${currentImageIndex + 1}/${imageList.length})`;
+            
+            // 備考情報を更新
+            const remarksDiv = document.getElementById('modalRemarks');
+            const remarksText = document.getElementById('modalRemarksText');
+            
+            if (currentImage.remarks && currentImage.remarks.trim() !== '') {
+                remarksText.textContent = currentImage.remarks;
+                remarksDiv.style.display = 'block';
+            } else {
+                remarksDiv.style.display = 'none';
+            }
             
             // ボタンの表示/非表示
             const prevButton = document.getElementById('prevButton');

@@ -64,6 +64,16 @@
                                 </div>
                             </div>
                         {% endif %}
+                        
+                        <!-- 備考情報 -->
+                        {% if photo.remarks %}
+                        <div class="card-body p-2 pt-1">
+                            <small class="text-muted d-block">
+                                <i class="fas fa-comment me-1"></i>
+                                {{ photo.remarks }}
+                            </small>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
