@@ -96,11 +96,22 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">画像</h5>
+                    <h5 class="modal-title">画像 <span id="modalCounter"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center">
+                <div class="modal-body text-center position-relative">
                     <img id="modalImage" src="" alt="製品写真" class="img-fluid">
+                    
+                    <!-- 前の画像ボタン -->
+                    <button id="prevButton" class="btn btn-primary position-absolute top-50 start-0 translate-middle-y ms-2" style="z-index: 1050;" onclick="showPreviousImage()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <!-- 次の画像ボタン -->
+                    <button id="nextButton" class="btn btn-primary position-absolute top-50 end-0 translate-middle-y me-2" style="z-index: 1050;" onclick="showNextImage()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    
                     <div id="modalInfo" class="mt-3"></div>
                 </div>
             </div>
@@ -108,11 +119,138 @@
     </div>
 
     <script>
+        // グローバル変数
+        let currentImageIndex = 0;
+        let imageList = [];
+        let modal = null;
+
+        // 画像リストを初期化
+        function initImageList() {
+            imageList = [];
+            const photos = document.querySelectorAll('.image-card img[onclick]');
+            photos.forEach((img, index) => {
+                const onclickAttr = img.getAttribute('onclick');
+                if (onclickAttr) {
+                    const match = onclickAttr.match(/showImage\('([^']+)',\s*'([^']+)',\s*'([^']+)'\)/);
+                    if (match) {
+                        imageList.push({
+                            src: match[1],
+                            productCode: match[2],
+                            photoCode: match[3],
+                            element: img
+                        });
+                    }
+                }
+            });
+        }
+
         // 画像クリック時のモーダル表示
         function showImage(imageSrc, productCode, photoCode) {
-            document.getElementById('modalImage').src = imageSrc;
-            document.getElementById('modalInfo').innerHTML = '';  // 情報表示なし
-            new bootstrap.Modal(document.getElementById('imageModal')).show();
+            // 画像リストを初期化
+            initImageList();
+            
+            // 現在の画像のインデックスを見つける
+            currentImageIndex = imageList.findIndex(item => item.src === imageSrc);
+            if (currentImageIndex === -1) currentImageIndex = 0;
+            
+            // モーダル表示
+            displayCurrentImage();
+            
+            if (!modal) {
+                modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            }
+            modal.show();
+        }
+
+        // 現在の画像を表示
+        function displayCurrentImage() {
+            if (imageList.length === 0) return;
+            
+            const currentImage = imageList[currentImageIndex];
+            document.getElementById('modalImage').src = currentImage.src;
+            
+            // カウンターを更新
+            document.getElementById('modalCounter').textContent = 
+                `(${currentImageIndex + 1}/${imageList.length})`;
+            
+            // ボタンの表示/非表示
+            const prevButton = document.getElementById('prevButton');
+            const nextButton = document.getElementById('nextButton');
+            
+            prevButton.style.display = currentImageIndex > 0 ? 'block' : 'none';
+            nextButton.style.display = currentImageIndex < imageList.length - 1 ? 'block' : 'none';
+            
+            // 1枚しかない場合はボタンを非表示
+            if (imageList.length <= 1) {
+                prevButton.style.display = 'none';
+                nextButton.style.display = 'none';
+            }
+        }
+
+        // 前の画像を表示
+        function showPreviousImage() {
+            if (currentImageIndex > 0) {
+                currentImageIndex--;
+                displayCurrentImage();
+            }
+        }
+
+        // 次の画像を表示
+        function showNextImage() {
+            if (currentImageIndex < imageList.length - 1) {
+                currentImageIndex++;
+                displayCurrentImage();
+            }
+        }
+
+        // キーボードナビゲーション
+        document.addEventListener('keydown', function(event) {
+            const modalElement = document.getElementById('imageModal');
+            if (modalElement.classList.contains('show')) {
+                switch(event.key) {
+                    case 'ArrowLeft':
+                        event.preventDefault();
+                        showPreviousImage();
+                        break;
+                    case 'ArrowRight':
+                        event.preventDefault();
+                        showNextImage();
+                        break;
+                    case 'Escape':
+                        if (modal) {
+                            modal.hide();
+                        }
+                        break;
+                }
+            }
+        });
+
+        // タッチスワイプ対応（モバイル用）
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.getElementById('modalImage').addEventListener('touchstart', function(event) {
+            touchStartX = event.changedTouches[0].screenX;
+        });
+
+        document.getElementById('modalImage').addEventListener('touchend', function(event) {
+            touchEndX = event.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // 左スワイプ - 次の画像
+                    showNextImage();
+                } else {
+                    // 右スワイプ - 前の画像
+                    showPreviousImage();
+                }
+            }
         }
     </script>
 
