@@ -1,0 +1,92 @@
+{% extends 'product_viewer/base.html' %}
+
+{% block title %}検索結果 - 製品写真確認システム{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- 戻るボタンと検索フォーム -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="{% url 'product_viewer:index' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                戻る
+            </a>
+            
+            <form method="GET" action="{% url 'product_viewer:search' %}" class="d-flex">
+                <input 
+                    type="text" 
+                    class="form-control me-2" 
+                    name="product_code" 
+                    placeholder="製品コード"
+                    value="{{ product_code|default:'' }}"
+                >
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+
+        {% if error %}
+            <!-- エラーメッセージ -->
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ error }}
+            </div>
+        {% elif photos %}
+            <!-- 検索結果ヘッダー -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-images me-2"></i>
+                        製品コード: <span class="text-primary">{{ product_code }}</span>
+                        <span class="badge bg-secondary ms-2">{{ photos|length }}枚</span>
+                    </h5>
+                </div>
+            </div>
+
+            <!-- 画像ギャラリー -->
+            <div class="row image-gallery">
+                {% for photo in photos %}
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                    <div class="card image-card h-100">
+                        <img 
+                            src="{% url 'product_viewer:serve_image' photo.product_photo_code %}" 
+                            class="card-img-top" 
+                            alt="製品写真 {{ photo.product_photo_code }}"
+                            onclick="showImage('{% url 'product_viewer:serve_image' photo.product_photo_code %}', '{{ photo.product_code }}', '{{ photo.product_photo_code }}')"
+                            onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuWbnuWDj+OCkuiqreOBv+i+vOOCgeOBvuOBm+OCkzwvdGV4dD48L3N2Zz4='; this.onclick=null;"
+                        >
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-image me-1"></i>
+                                {{ photo.product_photo_code }}
+                            </h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    HNO: {{ photo.hno|default:"未設定" }}
+                                </small>
+                                {% if photo.remarks %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-comment me-1"></i>
+                                    {{ photo.remarks }}
+                                </small>
+                                {% endif %}
+                            </p>
+                            <button 
+                                class="btn btn-sm btn-outline-primary w-100"
+                                onclick="showImage('{% url 'product_viewer:serve_image' photo.product_photo_code %}', '{{ photo.product_code }}', '{{ photo.product_photo_code }}')"
+                            >
+                                <i class="fas fa-expand me-1"></i>
+                                拡大表示
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

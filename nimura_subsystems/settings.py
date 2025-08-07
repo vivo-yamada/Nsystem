@@ -36,7 +36,7 @@ ALLOWED_HOSTS = ['*']  # 開発環境用。本番環境では適切に設定す�
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    # 'django.contrib.admin',  # 一時的に無効化
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
