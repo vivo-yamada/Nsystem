@@ -1,16 +1,66 @@
 {% extends 'product_viewer/base.html' %}
 
-{% block title %}製品写真確認システム - トップページ{% endblock %}
+{% block title %}SubSystems - トップページ{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-6 col-md-8">
-        <div class="card">
+        <!-- バーコード読み取りカード -->
+        <div class="card mb-4">
             <div class="card-header bg-primary text-white text-center">
                 <h4 class="mb-0">
-                    <i class="fas fa-search me-2"></i>
-                    製品写真検索
+                    <i class="fas fa-barcode me-2"></i>
+                    バーコード読み取り
                 </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center mb-3">
+                    <button id="startScanBtn" class="btn btn-success btn-lg">
+                        <i class="fas fa-camera me-2"></i>
+                        カメラを開始
+                    </button>
+                    <button id="stopScanBtn" class="btn btn-danger btn-lg" style="display: none;">
+                        <i class="fas fa-stop me-2"></i>
+                        スキャン停止
+                    </button>
+                </div>
+                
+                <!-- バーコードスキャナー -->
+                <div id="reader" style="width: 100%; max-width: 400px; margin: 0 auto; display: none;"></div>
+                
+                <!-- 結果表示 -->
+                <div id="scanResult" class="mt-3" style="display: none;">
+                    <div class="alert alert-success">
+                        <strong>読み取り成功:</strong>
+                        <span id="barcodeValue"></span>
+                    </div>
+                </div>
+                
+                <!-- エラー表示 -->
+                <div id="scanError" class="mt-3" style="display: none;">
+                    <div class="alert alert-danger">
+                        <strong>エラー:</strong>
+                        <span id="errorMessage"></span>
+                    </div>
+                </div>
+                
+                <!-- ローディング表示 -->
+                <div id="loading" class="text-center mt-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">読み込み中...</span>
+                    </div>
+                    <p class="mt-2">製品写真を検索中...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 手動入力フォールバック -->
+        <div class="card">
+            <div class="card-header text-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-keyboard me-2"></i>
+                    手動入力
+                </h6>
             </div>
             <div class="card-body p-4">
                 <form method="GET" action="{% url 'product_viewer:search' %}">
@@ -18,20 +68,15 @@
                         <label for="product_code" class="form-label">製品コード</label>
                         <input 
                             type="text" 
-                            class="form-control form-control-lg" 
+                            class="form-control" 
                             id="product_code" 
                             name="product_code" 
-                            placeholder="製品コードを入力してください"
-                            required
-                            autofocus
+                            placeholder="製品コードを直接入力"
                         >
-                        <div class="form-text">
-                            例: 005062, 117700, 139552
-                        </div>
                     </div>
                     
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="submit" class="btn btn-outline-primary">
                             <i class="fas fa-search me-2"></i>
                             検索
                         </button>
@@ -39,14 +84,132 @@
                 </form>
             </div>
         </div>
-
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // エンターキーでの検索をサポート
+    let html5QrCode;
+    let isScanning = false;
+
+    // バーコードスキャナー開始
+    document.getElementById('startScanBtn').addEventListener('click', function() {
+        startBarcodeScanner();
+    });
+
+    // バーコードスキャナー停止
+    document.getElementById('stopScanBtn').addEventListener('click', function() {
+        stopBarcodeScanner();
+    });
+
+    function startBarcodeScanner() {
+        if (isScanning) return;
+
+        html5QrCode = new Html5Qrcode("reader");
+        
+        // UI更新
+        document.getElementById('startScanBtn').style.display = 'none';
+        document.getElementById('stopScanBtn').style.display = 'inline-block';
+        document.getElementById('reader').style.display = 'block';
+        document.getElementById('scanResult').style.display = 'none';
+        document.getElementById('scanError').style.display = 'none';
+
+        // カメラ設定
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 100 },
+            aspectRatio: 1.777778
+        };
+
+        html5QrCode.start(
+            { facingMode: "environment" }, // 背面カメラを優先
+            config,
+            (decodedText, decodedResult) => {
+                // バーコード読み取り成功
+                onBarcodeSuccess(decodedText);
+            },
+            (errorMessage) => {
+                // 読み取りエラー（通常は無視）
+                console.log(`スキャンエラー: ${errorMessage}`);
+            }
+        ).then(() => {
+            isScanning = true;
+        }).catch(err => {
+            console.error('カメラ開始エラー:', err);
+            showError('カメラへのアクセスに失敗しました。ブラウザの権限設定を確認してください。');
+            stopBarcodeScanner();
+        });
+    }
+
+    function stopBarcodeScanner() {
+        if (!isScanning || !html5QrCode) return;
+
+        html5QrCode.stop().then(() => {
+            console.log('バーコードスキャナー停止');
+            isScanning = false;
+            
+            // UI更新
+            document.getElementById('startScanBtn').style.display = 'inline-block';
+            document.getElementById('stopScanBtn').style.display = 'none';
+            document.getElementById('reader').style.display = 'none';
+        }).catch(err => {
+            console.error('スキャナー停止エラー:', err);
+        });
+    }
+
+    function onBarcodeSuccess(orderCode) {
+        console.log('バーコード読み取り成功:', orderCode);
+        
+        // スキャナー停止
+        stopBarcodeScanner();
+        
+        // 結果表示
+        document.getElementById('barcodeValue').textContent = orderCode;
+        document.getElementById('scanResult').style.display = 'block';
+        document.getElementById('loading').style.display = 'block';
+        
+        // サーバーに送信
+        searchByOrderCode(orderCode);
+    }
+
+    function searchByOrderCode(orderCode) {
+        fetch('/api/barcode-search/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                order_code: orderCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loading').style.display = 'none';
+            
+            if (data.success) {
+                // 成功時は検索結果ページにリダイレクト
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1000);
+            } else {
+                showError(data.error || 'エラーが発生しました');
+            }
+        })
+        .catch(error => {
+            console.error('API エラー:', error);
+            document.getElementById('loading').style.display = 'none';
+            showError('サーバーとの通信に失敗しました');
+        });
+    }
+
+    function showError(message) {
+        document.getElementById('errorMessage').textContent = message;
+        document.getElementById('scanError').style.display = 'block';
+        document.getElementById('scanResult').style.display = 'none';
+    }
+
+    // 手動検索のエンターキーサポート
     document.getElementById('product_code').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             this.closest('form').submit();

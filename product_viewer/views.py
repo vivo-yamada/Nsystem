@@ -1,9 +1,12 @@
 from django.shortcuts import render
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.views import View
-from .services import ProductPhotoService
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from .services import ProductPhotoService, OrderMasterService
 import os
 import mimetypes
+import json
 
 def index(request):
     """製品コード入力画面"""
@@ -59,3 +62,39 @@ def serve_image(request, product_photo_code):
             return response
     except Exception as e:
         raise Http404(f"画像の読み込みに失敗しました: {str(e)}")
+
+
+@csrf_exempt
+def search_by_barcode(request):
+    """バーコード（受注コード）で検索してJSONレスポンスを返す"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST method required'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        order_code = data.get('order_code', '').strip()
+        
+        if not order_code:
+            return JsonResponse({'error': '受注コードが必要です'}, status=400)
+        
+        # 受注コードから製品写真を取得
+        photos = OrderMasterService.get_photos_by_order_code(order_code)
+        
+        if not photos:
+            return JsonResponse({
+                'error': f'受注コード {order_code} に対応する製品写真が見つかりませんでした'
+            }, status=404)
+        
+        # JSON形式でレスポンス
+        return JsonResponse({
+            'success': True,
+            'order_code': order_code,
+            'product_code': photos[0]['product_code'],
+            'photos': photos,
+            'redirect_url': f'/search/?product_code={photos[0]["product_code"]}'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

@@ -45,3 +45,29 @@ class ProductPhoto(models.Model):
 
     def __str__(self):
         return f"{self.product_code} - {self.product_photo_code}"
+
+
+class OrderMaster(models.Model):
+    """
+    既存データベースのT_受注マスタテーブルとマッピングするモデル
+    """
+    order_code = models.CharField(
+        max_length=20,
+        primary_key=True,
+        db_column='受注コード',
+        verbose_name='受注コード'
+    )
+    product_code = models.CharField(
+        max_length=10,
+        db_column='製品コード',
+        verbose_name='製品コード'
+    )
+
+    class Meta:
+        db_table = 'T_受注マスタ'
+        managed = False  # 既存テーブルなのでDjangoでは管理しない
+        verbose_name = '受注マスタ'
+        verbose_name_plural = '受注マスタ'
+
+    def __str__(self):
+        return f"{self.order_code} - {self.product_code}"

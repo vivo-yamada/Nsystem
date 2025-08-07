@@ -172,3 +172,56 @@ class ProductPhotoService:
         finally:
             if conn:
                 conn.close()
+
+
+class OrderMasterService:
+    """
+    受注マスタデータを取得するサービスクラス
+    """
+    
+    @staticmethod
+    def get_connection():
+        """データベース接続を取得"""
+        return ProductPhotoService.get_connection()
+    
+    @classmethod
+    def get_product_code_by_order_code(cls, order_code: str) -> Optional[str]:
+        """
+        受注コードから製品コードを取得
+        """
+        conn = None
+        try:
+            conn = cls.get_connection()
+            cursor = conn.cursor(as_dict=True)
+            
+            query = """
+                SELECT 製品コード as product_code
+                FROM T_受注マスタ
+                WHERE 受注コード = %s
+            """
+            
+            cursor.execute(query, (order_code,))
+            result = cursor.fetchone()
+            
+            return result['product_code'] if result else None
+            
+        except Exception as e:
+            print(f"受注マスタ取得エラー: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+    
+    @classmethod
+    def get_photos_by_order_code(cls, order_code: str) -> List[Dict]:
+        """
+        受注コードから製品写真情報を取得
+        """
+        # まず受注コードから製品コードを取得
+        product_code = cls.get_product_code_by_order_code(order_code)
+        
+        if not product_code:
+            return []
+        
+        # 製品コードから写真情報を取得
+        return ProductPhotoService.get_photos_by_product_code(product_code)
