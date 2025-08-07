@@ -139,13 +139,8 @@
                     if (onclickAttr) {
                         const match = onclickAttr.match(/showImage\('([^']+)',\s*'([^']+)',\s*'([^']+)'\)/);
                         if (match) {
-                            // 備考情報を取得
-                            const remarksElement = card.querySelector('.fa-comment');
-                            let remarks = '';
-                            if (remarksElement) {
-                                const parentElement = remarksElement.parentNode;
-                                remarks = parentElement.textContent.replace(/\s*\S+\s*/, '').trim(); // アイコン文字を除去
-                            }
+                            // 備考情報をdata属性から取得
+                            const remarks = img.getAttribute('data-remarks') || '';
                             
                             imageList.push({
                                 src: match[1],

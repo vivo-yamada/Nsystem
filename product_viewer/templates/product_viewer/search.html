@@ -53,6 +53,7 @@
                                 src="{% url 'product_viewer:serve_image' photo.product_photo_code %}" 
                                 class="card-img-top" 
                                 alt="製品写真 {{ photo.product_photo_code }}"
+                                data-remarks="{{ photo.remarks|default:'' }}"
                                 onclick="showImage('{% url 'product_viewer:serve_image' photo.product_photo_code %}', '{{ photo.product_code }}', '{{ photo.product_photo_code }}')"
                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iODAiIHI9IjIwIiBmaWxsPSIjZGVlMmU2Ii8+PGNpcmNsZSBjeD0iMTQ1IiBjeT0iNzUiIHI9IjMiIGZpbGw9IiM5Y2EzYWYiLz48cGF0aCBkPSJNMTMwIDEwMCBMMTcwIDEwMCBMMTYwIDEzMCBMMTQwIDEzMFoiIGZpbGw9IiNkZWUyZTYiLz48dGV4dCB4PSIxNTAiIHk9IjE2MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNmI3Mjg4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7nlLvlg4/jgYzoplvjgaTjgYvjgorjgb7jgZvjgpM8L3RleHQ+PC9zdmc+'; this.onclick=null;"
                             >
