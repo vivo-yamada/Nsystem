@@ -80,21 +80,28 @@ WSGI_APPLICATION = 'nimura_subsystems.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'mssql',
-        'NAME': os.getenv('DB_NAME', 'your_database_name'),
-        'USER': os.getenv('DB_USER', 'your_username'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'your_password'),
-        'HOST': os.getenv('DB_HOST', 'your_server_name'),
-        'PORT': '',  # SQL Server Expressは動的ポートを使用
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            # Windows環境で実行する場合は以下を追加
-            # 'extra_params': 'TrustServerCertificate=yes',
-        },
+# 開発環境ではSQLiteを使用し、本番環境でSQL Serverを使用
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'sql_server.pyodbc',
+            'NAME': os.getenv('DB_NAME', 'your_database_name'),
+            'USER': os.getenv('DB_USER', 'your_username'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'your_password'),
+            'HOST': os.getenv('DB_HOST', 'your_server_name'),
+            'PORT': '',  # SQL Server Expressは動的ポートを使用
+            'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',
+            },
+        }
+    }
 
 # データベースルーター設定
 DATABASE_ROUTERS = ['nimura_subsystems.db_router.ProductViewerRouter']
