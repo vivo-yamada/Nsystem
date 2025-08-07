@@ -1,3 +1,14 @@
+"""
+テストデータ更新スクリプト
+
+このスクリプトは以下の機能を提供します：
+- 製品写真の備考情報をテスト用データで更新
+- データベース内のテストデータメンテナンス
+
+実行方法:
+    python tools/update_test_data.py
+"""
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -5,8 +16,8 @@ from dotenv import load_dotenv
 # 環境変数を読み込み
 load_dotenv()
 
-# Pythonパスに追加
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Pythonパスを追加（親ディレクトリを追加）
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from product_viewer.services import ProductPhotoService
 import pymssql

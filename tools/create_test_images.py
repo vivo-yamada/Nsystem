@@ -1,3 +1,14 @@
+"""
+テスト用画像作成スクリプト
+
+このスクリプトは以下の機能を提供します：
+- データベース内のパス情報に対応するテスト画像を作成
+- 製品コード005062用のサンプル画像生成
+
+実行方法:
+    python tools/create_test_images.py
+"""
+
 from PIL import Image, ImageDraw, ImageFont
 import os
 

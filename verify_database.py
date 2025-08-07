@@ -1,3 +1,15 @@
+"""
+データベース接続・データ取得の動作確認スクリプト
+
+このスクリプトは以下の動作確認を行います：
+- ProductPhotoServiceクラスの動作確認
+- データベースからのデータ取得確認
+- 製品コード検索の動作確認
+
+実行方法:
+    python verify_database.py
+"""
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -10,7 +22,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from product_viewer.services import ProductPhotoService
 
-def test_service():
+def verify_database_operations():
     try:
         print("ProductPhotoServiceのテスト...")
         
@@ -61,4 +73,4 @@ def test_service():
         traceback.print_exc()
 
 if __name__ == "__main__":
-    test_service()
+    verify_database_operations()

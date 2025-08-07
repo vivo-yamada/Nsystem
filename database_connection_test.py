@@ -1,3 +1,16 @@
+"""
+SQL Serverデータベース接続テストスクリプト
+
+このスクリプトは以下の接続確認を行います：
+- SQL Server データベースへの基本接続確認
+- T_製品写真サブテーブルの存在確認
+- テーブル構造の確認
+- サンプルデータの存在確認
+
+実行方法:
+    python database_connection_test.py
+"""
+
 import pymssql
 import os
 from dotenv import load_dotenv

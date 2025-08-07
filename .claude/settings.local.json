@@ -10,7 +10,8 @@
       "Bash(python:*)",
       "Bash(sudo apt-get:*)",
       "Bash(sudo apt-get install:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

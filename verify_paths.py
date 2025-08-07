@@ -1,3 +1,15 @@
+"""
+パス変換機能の動作確認スクリプト
+
+このスクリプトは以下の動作確認を行います：
+- WindowsパスからWSL形式への変換機能
+- 画像ファイルの存在確認
+- データベース内のパス情報とファイルシステムの整合性確認
+
+実行方法:
+    python verify_paths.py
+"""
+
 import os
 import sys
 from dotenv import load_dotenv
@@ -10,7 +22,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from product_viewer.services import ProductPhotoService
 
-def test_path_conversion():
+def verify_path_conversion():
     """パス変換のテスト"""
     
     print("=== パス変換テスト ===")
@@ -51,4 +63,4 @@ def test_path_conversion():
         print(f"パス存在: {photo.get('path_exists', False)}")
 
 if __name__ == "__main__":
-    test_path_conversion()
+    verify_path_conversion()
