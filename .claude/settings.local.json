@@ -9,7 +9,8 @@
       "Bash(python manage.py startapp:*)",
       "Bash(python:*)",
       "Bash(sudo apt-get:*)",
-      "Bash(sudo apt-get install:*)"
+      "Bash(sudo apt-get install:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }

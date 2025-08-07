@@ -40,11 +40,11 @@ def serve_image(request, product_photo_code):
     if not photo:
         raise Http404("画像が見つかりません")
     
-    image_path = photo['path']
+    # アクセス可能なパスを使用
+    image_path = photo.get('accessible_path')
     
-    # パスが存在するか確認
-    if not os.path.exists(image_path):
-        raise Http404(f"画像ファイルが見つかりません: {image_path}")
+    if not image_path:
+        raise Http404(f"画像ファイルにアクセスできません: {photo['path']}")
     
     # MIMEタイプを推測
     content_type, _ = mimetypes.guess_type(image_path)
@@ -53,6 +53,9 @@ def serve_image(request, product_photo_code):
     
     try:
         with open(image_path, 'rb') as f:
-            return HttpResponse(f.read(), content_type=content_type)
+            response = HttpResponse(f.read(), content_type=content_type)
+            # キャッシュヘッダーを追加
+            response['Cache-Control'] = 'public, max-age=3600'
+            return response
     except Exception as e:
         raise Http404(f"画像の読み込みに失敗しました: {str(e)}")

@@ -2,11 +2,53 @@ import os
 import pymssql
 from django.conf import settings
 from typing import List, Dict, Optional
+import re
 
 class ProductPhotoService:
     """
     製品写真データを取得するサービスクラス
     """
+    
+    @staticmethod
+    def convert_windows_path_to_wsl(windows_path: str) -> str:
+        r"""
+        WindowsパスをWSL形式に変換
+        例: C:\Users\... -> /mnt/c/Users/...
+        """
+        if not windows_path:
+            return windows_path
+            
+        # Windowsパスの正規表現パターン  
+        windows_pattern = r'^([A-Za-z]):(.*)$'
+        match = re.match(windows_pattern, windows_path)
+        
+        if match:
+            drive_letter = match.group(1).lower()
+            path_part = match.group(2).replace('\\', '/')
+            return f"/mnt/{drive_letter}{path_part}"
+        
+        return windows_path
+    
+    @staticmethod
+    def get_accessible_image_path(original_path: str) -> str:
+        """
+        アクセス可能な画像パスを取得
+        """
+        if not original_path:
+            return None
+            
+        # WSL形式に変換
+        wsl_path = ProductPhotoService.convert_windows_path_to_wsl(original_path)
+        
+        # ファイルが存在するか確認
+        if os.path.exists(wsl_path):
+            return wsl_path
+        
+        # 元のパスが存在するか確認
+        if os.path.exists(original_path):
+            return original_path
+            
+        return None
     
     @staticmethod
     def get_connection():
@@ -51,6 +93,11 @@ class ProductPhotoService:
             cursor.execute(query, (product_code,))
             results = cursor.fetchall()
             
+            # 各結果にアクセス可能なパス情報を追加
+            for result in results:
+                result['accessible_path'] = cls.get_accessible_image_path(result['path'])
+                result['path_exists'] = result['accessible_path'] is not None
+            
             return results
             
         except Exception as e:
@@ -83,6 +130,10 @@ class ProductPhotoService:
             
             cursor.execute(query, (photo_code,))
             result = cursor.fetchone()
+            
+            if result:
+                result['accessible_path'] = cls.get_accessible_image_path(result['path'])
+                result['path_exists'] = result['accessible_path'] is not None
             
             return result
             

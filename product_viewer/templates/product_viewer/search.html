@@ -49,13 +49,23 @@
                 {% for photo in photos %}
                 <div class="col-lg-4 col-md-6 col-sm-12">
                     <div class="card image-card h-100">
-                        <img 
-                            src="{% url 'product_viewer:serve_image' photo.product_photo_code %}" 
-                            class="card-img-top" 
-                            alt="製品写真 {{ photo.product_photo_code }}"
-                            onclick="showImage('{% url 'product_viewer:serve_image' photo.product_photo_code %}', '{{ photo.product_code }}', '{{ photo.product_photo_code }}')"
-                            onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuWbnuWDj+OCkuiqreOBv+i+vOOCgeOBvuOBm+OCkzwvdGV4dD48L3N2Zz4='; this.onclick=null;"
-                        >
+                        {% if photo.path_exists %}
+                            <img 
+                                src="{% url 'product_viewer:serve_image' photo.product_photo_code %}" 
+                                class="card-img-top" 
+                                alt="製品写真 {{ photo.product_photo_code }}"
+                                onclick="showImage('{% url 'product_viewer:serve_image' photo.product_photo_code %}', '{{ photo.product_code }}', '{{ photo.product_photo_code }}')"
+                                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iODAiIHI9IjIwIiBmaWxsPSIjZGVlMmU2Ii8+PGNpcmNsZSBjeD0iMTQ1IiBjeT0iNzUiIHI9IjMiIGZpbGw9IiM5Y2EzYWYiLz48cGF0aCBkPSJNMTMwIDEwMCBMMTcwIDEwMCBMMTYwIDEzMCBMMTQwIDEzMFoiIGZpbGw9IiNkZWUyZTYiLz48dGV4dCB4PSIxNTAiIHk9IjE2MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNmI3Mjg4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7nlLvlg4/jgYzoplvjgaTjgYvjgorjgb7jgZvjgpM8L3RleHQ+PC9zdmc+'; this.onclick=null;"
+                            >
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-exclamation-triangle fa-3x mb-2"></i>
+                                    <div>画像ファイルが<br>見つかりません</div>
+                                    <small>{{ photo.path }}</small>
+                                </div>
+                            </div>
+                        {% endif %}
                         <div class="card-body">
                             <h6 class="card-title">
                                 <i class="fas fa-image me-1"></i>
@@ -74,13 +84,20 @@
                                 </small>
                                 {% endif %}
                             </p>
-                            <button 
-                                class="btn btn-sm btn-outline-primary w-100"
-                                onclick="showImage('{% url 'product_viewer:serve_image' photo.product_photo_code %}', '{{ photo.product_code }}', '{{ photo.product_photo_code }}')"
-                            >
-                                <i class="fas fa-expand me-1"></i>
-                                拡大表示
-                            </button>
+                            {% if photo.path_exists %}
+                                <button 
+                                    class="btn btn-sm btn-outline-primary w-100"
+                                    onclick="showImage('{% url 'product_viewer:serve_image' photo.product_photo_code %}', '{{ photo.product_code }}', '{{ photo.product_photo_code }}')"
+                                >
+                                    <i class="fas fa-expand me-1"></i>
+                                    拡大表示
+                                </button>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-secondary w-100" disabled>
+                                    <i class="fas fa-times me-1"></i>
+                                    画像なし
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
