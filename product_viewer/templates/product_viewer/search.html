@@ -35,11 +35,10 @@
         {% elif photos %}
             <!-- 検索結果ヘッダー -->
             <div class="card mb-4">
-                <div class="card-body">
+                <div class="card-body text-center py-3">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-images me-2"></i>
-                        製品コード: <span class="text-primary">{{ product_code }}</span>
-                        <span class="badge bg-secondary ms-2">{{ photos|length }}枚</span>
+                        <i class="fas fa-images me-2 text-primary"></i>
+                        <span class="badge bg-primary fs-6">{{ photos|length }}枚の画像</span>
                     </h5>
                 </div>
             </div>
@@ -58,47 +57,13 @@
                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iODAiIHI9IjIwIiBmaWxsPSIjZGVlMmU2Ii8+PGNpcmNsZSBjeD0iMTQ1IiBjeT0iNzUiIHI9IjMiIGZpbGw9IiM5Y2EzYWYiLz48cGF0aCBkPSJNMTMwIDEwMCBMMTcwIDEwMCBMMTYwIDEzMCBMMTQwIDEzMFoiIGZpbGw9IiNkZWUyZTYiLz48dGV4dCB4PSIxNTAiIHk9IjE2MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNmI3Mjg4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7nlLvlg4/jgYzoplvjgaTjgYvjgorjgb7jgZvjgpM8L3RleHQ+PC9zdmc+'; this.onclick=null;"
                             >
                         {% else %}
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                            <div class="image-placeholder d-flex align-items-center justify-content-center">
                                 <div class="text-center text-muted">
-                                    <i class="fas fa-exclamation-triangle fa-3x mb-2"></i>
-                                    <div>画像ファイルが<br>見つかりません</div>
-                                    <small>{{ photo.path }}</small>
+                                    <i class="fas fa-exclamation-triangle fa-2x mb-2 opacity-50"></i>
+                                    <div class="small">画像ファイルが見つかりません</div>
                                 </div>
                             </div>
                         {% endif %}
-                        <div class="card-body">
-                            <h6 class="card-title">
-                                <i class="fas fa-image me-1"></i>
-                                {{ photo.product_photo_code }}
-                            </h6>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-hashtag me-1"></i>
-                                    HNO: {{ photo.hno|default:"未設定" }}
-                                </small>
-                                {% if photo.remarks %}
-                                <br>
-                                <small class="text-muted">
-                                    <i class="fas fa-comment me-1"></i>
-                                    {{ photo.remarks }}
-                                </small>
-                                {% endif %}
-                            </p>
-                            {% if photo.path_exists %}
-                                <button 
-                                    class="btn btn-sm btn-outline-primary w-100"
-                                    onclick="showImage('{% url 'product_viewer:serve_image' photo.product_photo_code %}', '{{ photo.product_code }}', '{{ photo.product_photo_code }}')"
-                                >
-                                    <i class="fas fa-expand me-1"></i>
-                                    拡大表示
-                                </button>
-                            {% else %}
-                                <button class="btn btn-sm btn-outline-secondary w-100" disabled>
-                                    <i class="fas fa-times me-1"></i>
-                                    画像なし
-                                </button>
-                            {% endif %}
-                        </div>
                     </div>
                 </div>
                 {% endfor %}
