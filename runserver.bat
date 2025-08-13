@@ -1,6 +1,10 @@
 @echo off
 cd /d "%~dp0"
-call venv\Scripts\activate
-python manage.py migrate
-python manage.py runserver 127.0.0.1:8080
+
+echo WSL内でDjangoサーバーを起動します...
+echo 仮想環境をアクティベートしてサーバーを起動中...
+
+REM WSL内で仮想環境をアクティベートしてサーバー起動
+wsl bash -c "cd /mnt/c/ClaudeCode/APPS/Nsystem && source venv/bin/activate && python manage.py migrate && python manage.py runserver 0.0.0.0:8080"
+
 pause
