@@ -4,24 +4,20 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- バーコード読み取りセクション -->
+    <!-- 読み取り・入力セクション -->
     <div class="row mb-4">
-        <div class="col-lg-6 col-md-8 mx-auto">
+        <div class="col-lg-6 col-md-12">
         <!-- バーコード読み取りカード -->
-        <div class="card mb-4">
+        <div class="card">
             <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0">
+                <h5 class="mb-0">
                     <i class="fas fa-barcode me-2"></i>
                     バーコード読み取り
-                </h4>
+                </h5>
             </div>
             <div class="card-body p-4">
                 <!-- バーコードリーダー入力フィールド -->
                 <div class="mb-4">
-                    <label for="barcodeReaderInput" class="form-label">
-                        <i class="fas fa-barcode-read me-2"></i>
-                        バーコードリーダーで読み取り
-                    </label>
                     <input 
                         type="text" 
                         class="form-control form-control-lg" 
@@ -30,17 +26,16 @@
                         autocomplete="off"
                         autofocus
                     >
-                    <small class="text-muted">バーコードリーダーを使用して読み取ってください</small>
                 </div>
                 
                 <!-- カメラ読み取りオプション -->
                 <div class="text-center mb-3">
                     <p class="text-muted mb-2">または</p>
-                    <button id="startScanBtn" class="btn btn-outline-success">
+                    <button id="startScanBtn" class="btn btn-outline-primary btn-lg">
                         <i class="fas fa-camera me-2"></i>
                         カメラで読み取り
                     </button>
-                    <button id="stopScanBtn" class="btn btn-danger" style="display: none;">
+                    <button id="stopScanBtn" class="btn btn-danger btn-lg" style="display: none;">
                         <i class="fas fa-stop me-2"></i>
                         カメラ停止
                     </button>
@@ -74,22 +69,24 @@
                 </div>
             </div>
         </div>
+        </div>
         
+        <div class="col-lg-6 col-md-12">
         <!-- 手動入力フォールバック -->
         <div class="card">
-            <div class="card-header text-center">
-                <h6 class="mb-0">
+            <div class="card-header bg-primary text-white text-center">
+                <h5 class="mb-0">
                     <i class="fas fa-keyboard me-2"></i>
                     手動入力
-                </h6>
+                </h5>
             </div>
             <div class="card-body p-4">
                 <form id="manualSearchForm">
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="part_number" class="form-label">品番</label>
                         <input 
                             type="text" 
-                            class="form-control" 
+                            class="form-control form-control-lg" 
                             id="part_number" 
                             name="part_number" 
                             placeholder="品番を直接入力"
@@ -97,7 +94,7 @@
                     </div>
                     
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-outline-primary">
+                        <button type="submit" class="btn btn-primary btn-lg">
                             <i class="fas fa-search me-2"></i>
                             検索
                         </button>
@@ -105,7 +102,7 @@
                 </form>
             </div>
         </div>
-    </div>
+        </div>
     </div>
     
     <!-- 製品写真表示セクション -->
