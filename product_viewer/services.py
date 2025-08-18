@@ -174,6 +174,62 @@ class ProductPhotoService:
                 conn.close()
 
 
+class ProductMasterService:
+    """
+    製品マスタデータを取得するサービスクラス
+    """
+    
+    @staticmethod
+    def get_connection():
+        """データベース接続を取得"""
+        return ProductPhotoService.get_connection()
+    
+    @classmethod
+    def get_product_code_by_part_number(cls, part_number: str) -> Optional[str]:
+        """
+        品番から製品コードを取得
+        T_製品マスタから品番が一致する最初の製品IDを返す
+        """
+        conn = None
+        try:
+            conn = cls.get_connection()
+            cursor = conn.cursor(as_dict=True)
+            
+            # 品番から製品ID（製品コード）を取得
+            query = """
+                SELECT TOP 1 製品ID as product_code
+                FROM T_製品マスタ
+                WHERE 品番 = %s
+                ORDER BY 製品ID
+            """
+            
+            cursor.execute(query, (part_number,))
+            result = cursor.fetchone()
+            
+            return result['product_code'] if result else None
+            
+        except Exception as e:
+            print(f"製品マスタ取得エラー: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+    
+    @classmethod
+    def get_photos_by_part_number(cls, part_number: str) -> List[Dict]:
+        """
+        品番から製品写真情報を取得
+        """
+        # まず品番から製品コードを取得
+        product_code = cls.get_product_code_by_part_number(part_number)
+        
+        if not product_code:
+            return []
+        
+        # 製品コードから写真情報を取得
+        return ProductPhotoService.get_photos_by_product_code(product_code)
+
+
 class OrderMasterService:
     """
     受注マスタデータを取得するサービスクラス

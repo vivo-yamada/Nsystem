@@ -3,7 +3,7 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .services import ProductPhotoService, OrderMasterService
+from .services import ProductPhotoService, OrderMasterService, ProductMasterService
 import os
 import mimetypes
 import json
@@ -139,6 +139,58 @@ def search_by_product_code(request):
             'success': True,
             'product_code': product_code,
             'order_code': '',  # 製品コード検索の場合は受注コードなし
+            'photos': photos_with_urls
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def search_by_part_number(request):
+    """品番で検索してJSONレスポンスを返す"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST method required'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        part_number = data.get('part_number', '').strip()
+        
+        if not part_number:
+            return JsonResponse({'error': '品番が必要です'}, status=400)
+        
+        # 品番から製品コードを取得
+        product_code = ProductMasterService.get_product_code_by_part_number(part_number)
+        
+        if not product_code:
+            return JsonResponse({
+                'success': False,
+                'error': f'品番 {part_number} に対応する製品が見つかりませんでした'
+            })
+        
+        # 製品写真を検索
+        photos = ProductPhotoService.get_photos_by_product_code(product_code)
+        
+        if not photos:
+            return JsonResponse({
+                'success': False,
+                'error': f'品番 {part_number} (製品コード: {product_code}) の写真が見つかりませんでした'
+            })
+        
+        # JSON形式でレスポンス（画像URLを含む）
+        photos_with_urls = []
+        for photo in photos:
+            photo_dict = dict(photo)
+            photo_dict['image_url'] = f'/image/{photo["product_photo_code"]}/'
+            photos_with_urls.append(photo_dict)
+        
+        return JsonResponse({
+            'success': True,
+            'part_number': part_number,
+            'product_code': product_code,
+            'order_code': '',  # 品番検索の場合は受注コードなし
             'photos': photos_with_urls
         })
         

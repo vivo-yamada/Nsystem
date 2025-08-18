@@ -84,15 +84,15 @@
                 </h6>
             </div>
             <div class="card-body p-4">
-                <form method="GET" action="{% url 'product_viewer:search' %}">
+                <form id="manualSearchForm">
                     <div class="mb-3">
-                        <label for="product_code" class="form-label">製品コード</label>
+                        <label for="part_number" class="form-label">品番</label>
                         <input 
                             type="text" 
                             class="form-control" 
-                            id="product_code" 
-                            name="product_code" 
-                            placeholder="製品コードを直接入力"
+                            id="part_number" 
+                            name="part_number" 
+                            placeholder="品番を直接入力"
                         >
                     </div>
                     
@@ -117,7 +117,7 @@
                         <h5 class="mb-0">
                             <i class="fas fa-images me-2"></i>
                             製品写真
-                            <span id="displayProductCode" class="ms-3"></span>
+                            <span id="displayProductInfo" class="ms-3"></span>
                             <button id="clearResults" class="btn btn-sm btn-light float-end">
                                 <i class="fas fa-times me-1"></i>クリア
                             </button>
@@ -302,9 +302,16 @@
     }
     
     function displayPhotos(data) {
-        // 製品コードを表示
-        document.getElementById('displayProductCode').textContent = 
-            `製品コード: ${data.product_code} (受注コード: ${data.order_code})`;
+        // 製品情報を表示
+        let displayText = '';
+        if (data.part_number) {
+            displayText = `品番: ${data.part_number} / 製品コード: ${data.product_code}`;
+        } else if (data.order_code) {
+            displayText = `受注コード: ${data.order_code} / 製品コード: ${data.product_code}`;
+        } else {
+            displayText = `製品コード: ${data.product_code}`;
+        }
+        document.getElementById('displayProductInfo').textContent = displayText;
         
         // 写真ギャラリーをクリア
         const gallery = document.getElementById('photoGallery');
@@ -374,26 +381,26 @@
     }
 
     // 手動検索の処理
-    const manualSearchForm = document.querySelector('form[action="{% url 'product_viewer:search' %}"]');
+    const manualSearchForm = document.getElementById('manualSearchForm');
     manualSearchForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        const productCode = document.getElementById('product_code').value.trim();
-        if (productCode) {
-            searchByProductCode(productCode);
+        const partNumber = document.getElementById('part_number').value.trim();
+        if (partNumber) {
+            searchByPartNumber(partNumber);
         }
     });
     
-    // 製品コードで直接検索
-    function searchByProductCode(productCode) {
+    // 品番で検索
+    function searchByPartNumber(partNumber) {
         document.getElementById('loading').style.display = 'block';
         
-        fetch('/api/product-search/', {
+        fetch('/api/part-number-search/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                product_code: productCode
+                part_number: partNumber
             })
         })
         .then(response => response.json())
@@ -428,7 +435,7 @@
         
         // 入力フィールドをクリア
         barcodeReaderInput.value = '';
-        document.getElementById('product_code').value = '';
+        document.getElementById('part_number').value = '';
         
         // バーコードリーダー入力にフォーカス
         barcodeReaderInput.focus();
