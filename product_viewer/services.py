@@ -188,19 +188,19 @@ class ProductMasterService:
     def get_product_code_by_part_number(cls, part_number: str) -> Optional[str]:
         """
         品番から製品コードを取得
-        T_製品マスタから品番が一致する最初の製品IDを返す
+        T_製品マスタから品番が一致する最初の製品コードを返す
         """
         conn = None
         try:
             conn = cls.get_connection()
             cursor = conn.cursor(as_dict=True)
             
-            # 品番から製品ID（製品コード）を取得
+            # 品番から製品コードを取得
             query = """
-                SELECT TOP 1 製品ID as product_code
+                SELECT TOP 1 製品コード as product_code
                 FROM T_製品マスタ
                 WHERE 品番 = %s
-                ORDER BY 製品ID
+                ORDER BY 製品コード
             """
             
             cursor.execute(query, (part_number,))
