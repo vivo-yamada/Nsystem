@@ -82,16 +82,64 @@ def search_by_barcode(request):
         
         if not photos:
             return JsonResponse({
+                'success': False,
                 'error': f'受注コード {order_code} に対応する製品写真が見つかりませんでした'
-            }, status=404)
+            })
         
-        # JSON形式でレスポンス
+        # JSON形式でレスポンス（画像URLを含む）
+        photos_with_urls = []
+        for photo in photos:
+            photo_dict = dict(photo)
+            photo_dict['image_url'] = f'/image/{photo["product_photo_code"]}/'
+            photos_with_urls.append(photo_dict)
+        
         return JsonResponse({
             'success': True,
             'order_code': order_code,
             'product_code': photos[0]['product_code'],
-            'photos': photos,
-            'redirect_url': f'/search/?product_code={photos[0]["product_code"]}'
+            'photos': photos_with_urls
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def search_by_product_code(request):
+    """製品コードで検索してJSONレスポンスを返す"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST method required'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        product_code = data.get('product_code', '').strip()
+        
+        if not product_code:
+            return JsonResponse({'error': '製品コードが必要です'}, status=400)
+        
+        # 製品写真を検索
+        photos = ProductPhotoService.get_photos_by_product_code(product_code)
+        
+        if not photos:
+            return JsonResponse({
+                'success': False,
+                'error': f'製品コード {product_code} の写真が見つかりませんでした'
+            })
+        
+        # JSON形式でレスポンス（画像URLを含む）
+        photos_with_urls = []
+        for photo in photos:
+            photo_dict = dict(photo)
+            photo_dict['image_url'] = f'/image/{photo["product_photo_code"]}/'
+            photos_with_urls.append(photo_dict)
+        
+        return JsonResponse({
+            'success': True,
+            'product_code': product_code,
+            'order_code': '',  # 製品コード検索の場合は受注コードなし
+            'photos': photos_with_urls
         })
         
     except json.JSONDecodeError:

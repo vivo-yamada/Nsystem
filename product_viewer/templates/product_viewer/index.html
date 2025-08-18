@@ -3,8 +3,10 @@
 {% block title %}SubSystems - トップページ{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-6 col-md-8">
+<div class="container-fluid">
+    <!-- バーコード読み取りセクション -->
+    <div class="row mb-4">
+        <div class="col-lg-6 col-md-8 mx-auto">
         <!-- バーコード読み取りカード -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white text-center">
@@ -101,6 +103,36 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    </div>
+    
+    <!-- 製品写真表示セクション -->
+    <div id="photoSection" style="display: none;">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-images me-2"></i>
+                            製品写真
+                            <span id="displayProductCode" class="ms-3"></span>
+                            <button id="clearResults" class="btn btn-sm btn-light float-end">
+                                <i class="fas fa-times me-1"></i>クリア
+                            </button>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="photoGallery" class="row g-3">
+                            <!-- 写真がここに動的に表示されます -->
+                        </div>
+                        <div id="noPhotos" class="text-center py-5" style="display: none;">
+                            <i class="fas fa-image fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">写真が見つかりませんでした</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -256,10 +288,8 @@
             document.getElementById('loading').style.display = 'none';
             
             if (data.success) {
-                // 成功時は検索結果ページにリダイレクト
-                setTimeout(() => {
-                    window.location.href = data.redirect_url;
-                }, 1000);
+                // 写真を表示
+                displayPhotos(data);
             } else {
                 showError(data.error || 'エラーが発生しました');
             }
@@ -270,6 +300,72 @@
             showError('サーバーとの通信に失敗しました');
         });
     }
+    
+    function displayPhotos(data) {
+        // 製品コードを表示
+        document.getElementById('displayProductCode').textContent = 
+            `製品コード: ${data.product_code} (受注コード: ${data.order_code})`;
+        
+        // 写真ギャラリーをクリア
+        const gallery = document.getElementById('photoGallery');
+        gallery.innerHTML = '';
+        
+        if (data.photos && data.photos.length > 0) {
+            // 写真を表示
+            data.photos.forEach((photo, index) => {
+                const photoCol = document.createElement('div');
+                photoCol.className = 'col-lg-4 col-md-6';
+                
+                const photoCard = document.createElement('div');
+                photoCard.className = 'card h-100';
+                
+                // 画像が存在する場合
+                if (photo.path_exists) {
+                    photoCard.innerHTML = `
+                        <img src="/image/${photo.product_photo_code}/" 
+                             class="card-img-top" 
+                             alt="製品写真 ${index + 1}"
+                             style="height: 300px; object-fit: contain; background: #f8f9fa;"
+                             loading="lazy">
+                        <div class="card-body">
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    HNO: ${photo.hno || '-'}<br>
+                                    ${photo.remarks || ''}
+                                </small>
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    photoCard.innerHTML = `
+                        <div class="card-body text-center" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                            <div>
+                                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                <p class="text-muted">画像ファイルが見つかりません</p>
+                                <small class="text-muted">HNO: ${photo.hno || '-'}</small>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                photoCol.appendChild(photoCard);
+                gallery.appendChild(photoCol);
+            });
+            
+            document.getElementById('noPhotos').style.display = 'none';
+        } else {
+            document.getElementById('noPhotos').style.display = 'block';
+        }
+        
+        // 写真セクションを表示
+        document.getElementById('photoSection').style.display = 'block';
+        
+        // エラー表示をクリア
+        document.getElementById('scanError').style.display = 'none';
+        
+        // バーコードリーダー入力に再フォーカス
+        barcodeReaderInput.focus();
+    }
 
     function showError(message) {
         document.getElementById('errorMessage').textContent = message;
@@ -277,12 +373,66 @@
         document.getElementById('scanResult').style.display = 'none';
     }
 
-    // 手動検索のエンターキーサポート
-    document.getElementById('product_code').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            this.closest('form').submit();
+    // 手動検索の処理
+    const manualSearchForm = document.querySelector('form[action="{% url 'product_viewer:search' %}"]');
+    manualSearchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const productCode = document.getElementById('product_code').value.trim();
+        if (productCode) {
+            searchByProductCode(productCode);
         }
     });
+    
+    // 製品コードで直接検索
+    function searchByProductCode(productCode) {
+        document.getElementById('loading').style.display = 'block';
+        
+        fetch('/api/product-search/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                product_code: productCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loading').style.display = 'none';
+            
+            if (data.success) {
+                displayPhotos(data);
+            } else {
+                showError(data.error || 'エラーが発生しました');
+            }
+        })
+        .catch(error => {
+            console.error('API エラー:', error);
+            document.getElementById('loading').style.display = 'none';
+            showError('サーバーとの通信に失敗しました');
+        });
+    }
+    
+    // 結果クリアボタン
+    document.getElementById('clearResults').addEventListener('click', function() {
+        clearResults();
+    });
+    
+    function clearResults() {
+        // 写真セクションを非表示
+        document.getElementById('photoSection').style.display = 'none';
+        
+        // 結果表示をクリア
+        document.getElementById('scanResult').style.display = 'none';
+        document.getElementById('scanError').style.display = 'none';
+        
+        // 入力フィールドをクリア
+        barcodeReaderInput.value = '';
+        document.getElementById('product_code').value = '';
+        
+        // バーコードリーダー入力にフォーカス
+        barcodeReaderInput.focus();
+    }
     
     // ページロード時にバーコードリーダー入力にフォーカス
     window.addEventListener('load', function() {
