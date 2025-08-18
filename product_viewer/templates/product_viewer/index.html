@@ -14,18 +14,37 @@
                 </h4>
             </div>
             <div class="card-body p-4">
+                <!-- バーコードリーダー入力フィールド -->
+                <div class="mb-4">
+                    <label for="barcodeReaderInput" class="form-label">
+                        <i class="fas fa-barcode-read me-2"></i>
+                        バーコードリーダーで読み取り
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control form-control-lg" 
+                        id="barcodeReaderInput" 
+                        placeholder="ここにフォーカスして読み取ってください"
+                        autocomplete="off"
+                        autofocus
+                    >
+                    <small class="text-muted">バーコードリーダーを使用して読み取ってください</small>
+                </div>
+                
+                <!-- カメラ読み取りオプション -->
                 <div class="text-center mb-3">
-                    <button id="startScanBtn" class="btn btn-success btn-lg">
+                    <p class="text-muted mb-2">または</p>
+                    <button id="startScanBtn" class="btn btn-outline-success">
                         <i class="fas fa-camera me-2"></i>
-                        カメラを開始
+                        カメラで読み取り
                     </button>
-                    <button id="stopScanBtn" class="btn btn-danger btn-lg" style="display: none;">
+                    <button id="stopScanBtn" class="btn btn-danger" style="display: none;">
                         <i class="fas fa-stop me-2"></i>
-                        スキャン停止
+                        カメラ停止
                     </button>
                 </div>
                 
-                <!-- バーコードスキャナー -->
+                <!-- バーコードスキャナー（カメラ） -->
                 <div id="reader" style="width: 100%; max-width: 400px; margin: 0 auto; display: none;"></div>
                 
                 <!-- 結果表示 -->
@@ -92,13 +111,53 @@
 <script>
     let html5QrCode;
     let isScanning = false;
+    let barcodeReaderTimeout;
 
-    // バーコードスキャナー開始
+    // バーコードリーダー入力フィールドの処理
+    const barcodeReaderInput = document.getElementById('barcodeReaderInput');
+    
+    // フォーカス時に入力をクリア
+    barcodeReaderInput.addEventListener('focus', function() {
+        this.value = '';
+    });
+    
+    // バーコードリーダーからの入力処理
+    barcodeReaderInput.addEventListener('input', function() {
+        // 既存のタイムアウトをクリア
+        if (barcodeReaderTimeout) {
+            clearTimeout(barcodeReaderTimeout);
+        }
+        
+        // 少し待ってから処理（連続入力対応）
+        barcodeReaderTimeout = setTimeout(() => {
+            const value = this.value.trim();
+            if (value) {
+                // バーコード読み取り成功として処理
+                onBarcodeSuccess(value);
+                // 入力フィールドをクリア
+                this.value = '';
+            }
+        }, 100);
+    });
+    
+    // Enterキーでも処理
+    barcodeReaderInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = this.value.trim();
+            if (value) {
+                onBarcodeSuccess(value);
+                this.value = '';
+            }
+        }
+    });
+
+    // カメラバーコードスキャナー開始
     document.getElementById('startScanBtn').addEventListener('click', function() {
         startBarcodeScanner();
     });
 
-    // バーコードスキャナー停止
+    // カメラバーコードスキャナー停止
     document.getElementById('stopScanBtn').addEventListener('click', function() {
         stopBarcodeScanner();
     });
@@ -114,6 +173,9 @@
         document.getElementById('reader').style.display = 'block';
         document.getElementById('scanResult').style.display = 'none';
         document.getElementById('scanError').style.display = 'none';
+        
+        // バーコードリーダー入力を無効化（カメラ使用中）
+        barcodeReaderInput.disabled = true;
 
         // カメラ設定
         const config = {
@@ -153,6 +215,10 @@
             document.getElementById('startScanBtn').style.display = 'inline-block';
             document.getElementById('stopScanBtn').style.display = 'none';
             document.getElementById('reader').style.display = 'none';
+            
+            // バーコードリーダー入力を有効化
+            barcodeReaderInput.disabled = false;
+            barcodeReaderInput.focus();
         }).catch(err => {
             console.error('スキャナー停止エラー:', err);
         });
@@ -161,8 +227,10 @@
     function onBarcodeSuccess(orderCode) {
         console.log('バーコード読み取り成功:', orderCode);
         
-        // スキャナー停止
-        stopBarcodeScanner();
+        // カメラ使用中の場合は停止
+        if (isScanning) {
+            stopBarcodeScanner();
+        }
         
         // 結果表示
         document.getElementById('barcodeValue').textContent = orderCode;
@@ -214,6 +282,11 @@
         if (e.key === 'Enter') {
             this.closest('form').submit();
         }
+    });
+    
+    // ページロード時にバーコードリーダー入力にフォーカス
+    window.addEventListener('load', function() {
+        barcodeReaderInput.focus();
     });
 </script>
 {% endblock %}
