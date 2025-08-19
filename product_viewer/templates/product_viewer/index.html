@@ -204,7 +204,24 @@
                                 <span id="barcodeTypeDisplay"></span>
                             </small>
                         </div>
+                        
                         </h5>
+                        
+                        <!-- デバッグ情報表示（開発用） -->
+                        <div id="debugInfo" class="mt-3" style="display: none;">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <small class="text-secondary">
+                                        <i class="fas fa-bug me-1"></i>
+                                        デバッグ情報（開発用）
+                                    </small>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div id="debugSteps"></div>
+                                    <div id="debugErrors"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div id="photoGallery" class="row g-3">
@@ -445,6 +462,33 @@
             }
         }
         
+        // デバッグ情報を表示（開発用）
+        if (data.debug_info) {
+            const debugInfo = document.getElementById('debugInfo');
+            const debugSteps = document.getElementById('debugSteps');
+            const debugErrors = document.getElementById('debugErrors');
+            
+            if (debugInfo && debugSteps && debugErrors) {
+                // ステップ情報を表示
+                if (data.debug_info.steps && data.debug_info.steps.length > 0) {
+                    debugSteps.innerHTML = '<small class="text-success"><strong>処理ステップ:</strong></small><br>' +
+                        data.debug_info.steps.map((step, index) => 
+                            `<small class="text-muted">${index + 1}. ${step}</small>`
+                        ).join('<br>');
+                }
+                
+                // エラー情報を表示
+                if (data.debug_info.errors && data.debug_info.errors.length > 0) {
+                    debugErrors.innerHTML = '<br><small class="text-danger"><strong>エラー:</strong></small><br>' +
+                        data.debug_info.errors.map(error => 
+                            `<small class="text-danger">• ${error}</small>`
+                        ).join('<br>');
+                }
+                
+                debugInfo.style.display = 'block';
+            }
+        }
+        
         // 写真ギャラリーをクリア
         const gallery = document.getElementById('photoGallery');
         gallery.innerHTML = '';
@@ -518,10 +562,13 @@
         const scanErrorMobile = document.getElementById('scanErrorMobile');
         const scanResultMobile = document.getElementById('scanResultMobile');
         
-        if (errorMessage) errorMessage.textContent = message;
+        // 改行を<br>タグに変換してHTMLとして表示
+        const formattedMessage = message.replace(/\n/g, '<br>');
+        
+        if (errorMessage) errorMessage.innerHTML = formattedMessage;
         if (scanError) scanError.style.display = 'block';
         if (scanResult) scanResult.style.display = 'none';
-        if (errorMessageMobile) errorMessageMobile.textContent = message;
+        if (errorMessageMobile) errorMessageMobile.innerHTML = formattedMessage;
         if (scanErrorMobile) scanErrorMobile.style.display = 'block';
         if (scanResultMobile) scanResultMobile.style.display = 'none';
     }
@@ -598,11 +645,13 @@
         const scanResultMobile = document.getElementById('scanResultMobile');
         const scanErrorMobile = document.getElementById('scanErrorMobile');
         const barcodeTypeInfo = document.getElementById('barcodeTypeInfo');
+        const debugInfo = document.getElementById('debugInfo');
         if (scanResult) scanResult.style.display = 'none';
         if (scanError) scanError.style.display = 'none';
         if (scanResultMobile) scanResultMobile.style.display = 'none';
         if (scanErrorMobile) scanErrorMobile.style.display = 'none';
         if (barcodeTypeInfo) barcodeTypeInfo.style.display = 'none';
+        if (debugInfo) debugInfo.style.display = 'none';
         
         // 入力フィールドをクリア
         if (barcodeReaderInput) barcodeReaderInput.value = '';

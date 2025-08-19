@@ -280,7 +280,7 @@ class OrderMasterService:
             
             query = """
                 SELECT 受注コード as order_code
-                FROM T_受注マスタ
+                FROM T_製作マスタ
                 WHERE 製造番号 = %s
             """
             
