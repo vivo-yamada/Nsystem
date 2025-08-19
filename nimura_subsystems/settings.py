@@ -30,6 +30,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-j&jo96k_8ho0ozu8@jjo6bd@#u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
+# バーコードシステムのデバッグモード設定
+BARCODE_DEBUG_MODE = os.getenv('BARCODE_DEBUG_MODE', 'True') == 'True'
+
 ALLOWED_HOSTS = ['*']  # 開発環境用。本番環境では適切に設定すること
 
 

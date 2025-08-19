@@ -216,6 +216,34 @@ class ProductMasterService:
                 conn.close()
     
     @classmethod
+    def get_product_info_by_product_code(cls, product_code: str) -> Optional[Dict]:
+        """
+        製品コードから品番と品名を取得
+        """
+        conn = None
+        try:
+            conn = cls.get_connection()
+            cursor = conn.cursor(as_dict=True)
+            
+            query = """
+                SELECT 品番 as part_number, 品名 as product_name
+                FROM T_製品マスタ
+                WHERE 製品コード = %s
+            """
+            
+            cursor.execute(query, (product_code,))
+            result = cursor.fetchone()
+            
+            return result if result else None
+            
+        except Exception as e:
+            print(f"製品情報取得エラー: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+    
+    @classmethod
     def get_photos_by_part_number(cls, part_number: str) -> List[Dict]:
         """
         品番から製品写真情報を取得

@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from .services import ProductPhotoService, OrderMasterService, ProductMasterService
 from .barcode_utils import detect_and_format_barcode_info, BarcodeDetector
+from django.conf import settings
 import os
 import mimetypes
 import json
@@ -87,106 +88,133 @@ def search_by_barcode(request):
         order_code = None
         manufacturing_number = None
         
-        # デバッグ情報を記録するための辞書
+        # デバッグ情報を記録するための辞書（デバッグモードのみ）
         debug_info = {
             'steps': [],
             'errors': []
-        }
+        } if settings.BARCODE_DEBUG_MODE else None
         
         # バーコード種類に応じて処理
         if barcode_type == 'order_code':
             # 受注コードの場合
             order_code = barcode
-            debug_info['steps'].append(f'受注コード: {order_code}')
+            if debug_info:
+                debug_info['steps'].append(f'受注コード: {order_code}')
             
             # 製品コードを取得
             product_code = OrderMasterService.get_product_code_by_order_code(order_code)
             if product_code:
-                debug_info['steps'].append(f'製品コード: {product_code}')
+                if debug_info:
+                    debug_info['steps'].append(f'製品コード: {product_code}')
                 photos = ProductPhotoService.get_photos_by_product_code(product_code)
-                debug_info['steps'].append(f'写真数: {len(photos)}枚')
+                if debug_info:
+                    debug_info['steps'].append(f'写真数: {len(photos)}枚')
             else:
-                debug_info['errors'].append('製品コードが取得できませんでした')
+                if debug_info:
+                    debug_info['errors'].append('製品コードが取得できませんでした')
             
         elif barcode_type == 'manufacturing_number':
             # 製造番号の場合
             manufacturing_number = barcode
-            debug_info['steps'].append(f'製造番号: {manufacturing_number}')
+            if debug_info:
+                debug_info['steps'].append(f'製造番号: {manufacturing_number}')
             
             # 製造番号から受注コードを取得
             order_code = OrderMasterService.get_order_code_by_manufacturing_number(manufacturing_number)
             if order_code:
-                debug_info['steps'].append(f'受注コード: {order_code}')
+                if debug_info:
+                    debug_info['steps'].append(f'受注コード: {order_code}')
                 
                 # 受注コードから製品コードを取得
                 product_code = OrderMasterService.get_product_code_by_order_code(order_code)
                 if product_code:
-                    debug_info['steps'].append(f'製品コード: {product_code}')
+                    if debug_info:
+                        debug_info['steps'].append(f'製品コード: {product_code}')
                     photos = ProductPhotoService.get_photos_by_product_code(product_code)
-                    debug_info['steps'].append(f'写真数: {len(photos)}枚')
+                    if debug_info:
+                        debug_info['steps'].append(f'写真数: {len(photos)}枚')
                 else:
-                    debug_info['errors'].append('製品コードが取得できませんでした')
+                    if debug_info:
+                        debug_info['errors'].append('製品コードが取得できませんでした')
             else:
-                debug_info['errors'].append('受注コードが取得できませんでした')
+                if debug_info:
+                    debug_info['errors'].append('受注コードが取得できませんでした')
             
         elif barcode_type == 'production_process_code':
             # 製作工程コードの場合
-            debug_info['steps'].append(f'製作工程コード: {barcode}')
+            if debug_info:
+                debug_info['steps'].append(f'製作工程コード: {barcode}')
             
             # 上8桁を製造番号として抽出
             manufacturing_number = BarcodeDetector.get_manufacturing_number_from_production_process_code(barcode)
-            debug_info['steps'].append(f'抽出した製造番号: {manufacturing_number}')
+            if debug_info:
+                debug_info['steps'].append(f'抽出した製造番号: {manufacturing_number}')
             
             # 製造番号から受注コードを取得
             order_code = OrderMasterService.get_order_code_by_manufacturing_number(manufacturing_number)
             if order_code:
-                debug_info['steps'].append(f'受注コード: {order_code}')
+                if debug_info:
+                    debug_info['steps'].append(f'受注コード: {order_code}')
                 
                 # 受注コードから製品コードを取得
                 product_code = OrderMasterService.get_product_code_by_order_code(order_code)
                 if product_code:
-                    debug_info['steps'].append(f'製品コード: {product_code}')
+                    if debug_info:
+                        debug_info['steps'].append(f'製品コード: {product_code}')
                     photos = ProductPhotoService.get_photos_by_product_code(product_code)
-                    debug_info['steps'].append(f'写真数: {len(photos)}枚')
+                    if debug_info:
+                        debug_info['steps'].append(f'写真数: {len(photos)}枚')
                 else:
-                    debug_info['errors'].append('製品コードが取得できませんでした')
+                    if debug_info:
+                        debug_info['errors'].append('製品コードが取得できませんでした')
             else:
-                debug_info['errors'].append('受注コードが取得できませんでした')
+                if debug_info:
+                    debug_info['errors'].append('受注コードが取得できませんでした')
                 
         elif barcode_type == 'part_number':
             # 品番の場合
-            debug_info['steps'].append(f'品番: {barcode}')
+            if debug_info:
+                debug_info['steps'].append(f'品番: {barcode}')
             
             # 品番から製品コードを取得
             product_code = ProductMasterService.get_product_code_by_part_number(barcode)
             if product_code:
-                debug_info['steps'].append(f'製品コード: {product_code}')
+                if debug_info:
+                    debug_info['steps'].append(f'製品コード: {product_code}')
                 photos = ProductPhotoService.get_photos_by_product_code(product_code)
-                debug_info['steps'].append(f'写真数: {len(photos)}枚')
+                if debug_info:
+                    debug_info['steps'].append(f'写真数: {len(photos)}枚')
             else:
-                debug_info['errors'].append('製品コードが取得できませんでした')
+                if debug_info:
+                    debug_info['errors'].append('製品コードが取得できませんでした')
         
         if not photos:
-            # エラーメッセージにデバッグ情報を含める
+            # エラーメッセージにデバッグ情報を含める（デバッグモードのみ）
             error_message = f'{barcode_info["display_name"]} {barcode} に対応する製品写真が見つかりませんでした'
             
-            # デバッグ情報を追加
-            if debug_info['steps']:
-                error_message += '\n\n処理ステップ:\n' + '\n'.join([f'{i+1}. {step}' for i, step in enumerate(debug_info['steps'])])
-            
-            if debug_info['errors']:
-                error_message += '\n\nエラー詳細:\n' + '\n'.join([f'• {error}' for error in debug_info['errors']])
+            # デバッグ情報を追加（デバッグモードのみ）
+            if debug_info and settings.BARCODE_DEBUG_MODE:
+                if debug_info['steps']:
+                    error_message += '\n\n処理ステップ:\n' + '\n'.join([f'{i+1}. {step}' for i, step in enumerate(debug_info['steps'])])
+                
+                if debug_info['errors']:
+                    error_message += '\n\nエラー詳細:\n' + '\n'.join([f'• {error}' for error in debug_info['errors']])
             
             return JsonResponse({
                 'success': False,
                 'error': error_message,
                 'barcode_info': barcode_info,
-                'debug_info': debug_info
+                'debug_info': debug_info if settings.BARCODE_DEBUG_MODE else None
             })
         
         # 製品コードを取得（まだ取得できていない場合）
         if not product_code and photos:
             product_code = photos[0]['product_code']
+        
+        # 品番と品名を取得（製品コードがある場合）
+        product_info = None
+        if product_code:
+            product_info = ProductMasterService.get_product_info_by_product_code(product_code)
         
         # JSON形式でレスポンス（画像URLを含む）
         photos_with_urls = []
@@ -202,8 +230,9 @@ def search_by_barcode(request):
             'manufacturing_number': manufacturing_number or '',
             'product_code': product_code or '',
             'part_number': barcode if barcode_type == 'part_number' else '',
+            'product_info': product_info,  # 品番と品名情報を追加
             'photos': photos_with_urls,
-            'debug_info': debug_info  # デバッグ情報を追加
+            'debug_info': debug_info if settings.BARCODE_DEBUG_MODE else None  # デバッグモードのみ
         })
         
     except json.JSONDecodeError:

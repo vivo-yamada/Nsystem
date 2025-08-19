@@ -431,15 +431,14 @@
     }
     
     function displayPhotos(data) {
-        // 製品情報を表示
+        // 品番と品名を表示
         let displayText = '';
-        if (data.part_number) {
-            displayText = `品番: ${data.part_number} / 製品コード: ${data.product_code}`;
-        } else if (data.manufacturing_number) {
-            displayText = `製造番号: ${data.manufacturing_number} / 受注コード: ${data.order_code} / 製品コード: ${data.product_code}`;
-        } else if (data.order_code) {
-            displayText = `受注コード: ${data.order_code} / 製品コード: ${data.product_code}`;
-        } else {
+        if (data.product_info && data.product_info.part_number) {
+            displayText = `品番: ${data.product_info.part_number}`;
+            if (data.product_info.product_name) {
+                displayText += ` / 品名: ${data.product_info.product_name}`;
+            }
+        } else if (data.product_code) {
             displayText = `製品コード: ${data.product_code}`;
         }
         document.getElementById('displayProductInfo').textContent = displayText;
