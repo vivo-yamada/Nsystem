@@ -503,12 +503,15 @@
                 
                 // 画像が存在する場合
                 if (photo.path_exists) {
+                    photoCard.className = 'card h-100 image-card';
                     photoCard.innerHTML = `
                         <img src="/image/${photo.product_photo_code}/" 
                              class="card-img-top" 
                              alt="製品写真 ${index + 1}"
-                             style="height: 300px; object-fit: contain; background: #f8f9fa;"
-                             loading="lazy">
+                             style="height: 300px; object-fit: contain; background: #f8f9fa; cursor: pointer;"
+                             loading="lazy"
+                             onclick="showImage('/image/${photo.product_photo_code}/', '${data.product_code}', '${photo.product_photo_code}')"
+                             data-remarks="${photo.remarks || ''}">
                         <div class="card-body">
                             <p class="card-text">
                                 <small class="text-muted">
