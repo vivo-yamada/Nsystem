@@ -269,6 +269,34 @@ class OrderMasterService:
                 conn.close()
     
     @classmethod
+    def get_order_code_by_manufacturing_number(cls, manufacturing_number: str) -> Optional[str]:
+        """
+        製造番号から受注コードを取得
+        """
+        conn = None
+        try:
+            conn = cls.get_connection()
+            cursor = conn.cursor(as_dict=True)
+            
+            query = """
+                SELECT 受注コード as order_code
+                FROM T_受注マスタ
+                WHERE 製造番号 = %s
+            """
+            
+            cursor.execute(query, (manufacturing_number,))
+            result = cursor.fetchone()
+            
+            return result['order_code'] if result else None
+            
+        except Exception as e:
+            print(f"製造番号から受注コード取得エラー: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+    
+    @classmethod
     def get_photos_by_order_code(cls, order_code: str) -> List[Dict]:
         """
         受注コードから製品写真情報を取得
@@ -281,3 +309,29 @@ class OrderMasterService:
         
         # 製品コードから写真情報を取得
         return ProductPhotoService.get_photos_by_product_code(product_code)
+    
+    @classmethod
+    def get_photos_by_manufacturing_number(cls, manufacturing_number: str) -> List[Dict]:
+        """
+        製造番号から製品写真情報を取得
+        """
+        # 製造番号から受注コードを取得
+        order_code = cls.get_order_code_by_manufacturing_number(manufacturing_number)
+        
+        if not order_code:
+            return []
+        
+        # 受注コードから製品写真を取得
+        return cls.get_photos_by_order_code(order_code)
+    
+    @classmethod
+    def get_photos_by_production_process_code(cls, production_process_code: str) -> List[Dict]:
+        """
+        製作工程コードから製品写真情報を取得
+        """
+        # 製作工程コードの上8桁が製造番号
+        if len(production_process_code) >= 8:
+            manufacturing_number = production_process_code[:8]
+            return cls.get_photos_by_manufacturing_number(manufacturing_number)
+        
+        return []

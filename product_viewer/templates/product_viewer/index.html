@@ -197,6 +197,14 @@
                                 <i class="fas fa-times me-1"></i>クリア
                             </button>
                         </h5>
+                        <!-- バーコード種類表示（開発用） -->
+                        <div id="barcodeTypeInfo" class="mt-2" style="display: none;">
+                            <small class="text-info">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <span id="barcodeTypeDisplay"></span>
+                            </small>
+                        </div>
+                        </h5>
                     </div>
                     <div class="card-body">
                         <div id="photoGallery" class="row g-3">
@@ -410,12 +418,32 @@
         let displayText = '';
         if (data.part_number) {
             displayText = `品番: ${data.part_number} / 製品コード: ${data.product_code}`;
+        } else if (data.manufacturing_number) {
+            displayText = `製造番号: ${data.manufacturing_number} / 受注コード: ${data.order_code} / 製品コード: ${data.product_code}`;
         } else if (data.order_code) {
             displayText = `受注コード: ${data.order_code} / 製品コード: ${data.product_code}`;
         } else {
             displayText = `製品コード: ${data.product_code}`;
         }
         document.getElementById('displayProductInfo').textContent = displayText;
+        
+        // バーコード種類情報を表示（開発用）
+        if (data.barcode_info) {
+            const barcodeTypeDisplay = document.getElementById('barcodeTypeDisplay');
+            const barcodeTypeInfo = document.getElementById('barcodeTypeInfo');
+            
+            if (barcodeTypeDisplay && barcodeTypeInfo) {
+                let typeText = `読み取ったバーコード: "${data.barcode_info.barcode}" = ${data.barcode_info.display_name} (${data.barcode_info.reason})`;
+                
+                // 製作工程コードの場合は抽出した製造番号も表示
+                if (data.barcode_info.type === 'production_process_code' && data.barcode_info.extracted_manufacturing_number) {
+                    typeText += ` → 製造番号: ${data.barcode_info.extracted_manufacturing_number}`;
+                }
+                
+                barcodeTypeDisplay.textContent = typeText;
+                barcodeTypeInfo.style.display = 'block';
+            }
+        }
         
         // 写真ギャラリーをクリア
         const gallery = document.getElementById('photoGallery');
@@ -569,10 +597,12 @@
         const scanError = document.getElementById('scanError');
         const scanResultMobile = document.getElementById('scanResultMobile');
         const scanErrorMobile = document.getElementById('scanErrorMobile');
+        const barcodeTypeInfo = document.getElementById('barcodeTypeInfo');
         if (scanResult) scanResult.style.display = 'none';
         if (scanError) scanError.style.display = 'none';
         if (scanResultMobile) scanResultMobile.style.display = 'none';
         if (scanErrorMobile) scanErrorMobile.style.display = 'none';
+        if (barcodeTypeInfo) barcodeTypeInfo.style.display = 'none';
         
         // 入力フィールドをクリア
         if (barcodeReaderInput) barcodeReaderInput.value = '';

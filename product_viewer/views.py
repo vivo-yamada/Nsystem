@@ -4,6 +4,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from .services import ProductPhotoService, OrderMasterService, ProductMasterService
+from .barcode_utils import detect_and_format_barcode_info, BarcodeDetector
 import os
 import mimetypes
 import json
@@ -66,25 +67,64 @@ def serve_image(request, product_photo_code):
 
 @csrf_exempt
 def search_by_barcode(request):
-    """バーコード（受注コード）で検索してJSONレスポンスを返す"""
+    """バーコードで自動判別して検索してJSONレスポンスを返す"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST method required'}, status=405)
     
     try:
         data = json.loads(request.body)
-        order_code = data.get('order_code', '').strip()
+        barcode = data.get('order_code', '').strip()  # パラメータ名は保持（互換性のため）
         
-        if not order_code:
-            return JsonResponse({'error': '受注コードが必要です'}, status=400)
+        if not barcode:
+            return JsonResponse({'error': 'バーコードが必要です'}, status=400)
         
-        # 受注コードから製品写真を取得
-        photos = OrderMasterService.get_photos_by_order_code(order_code)
+        # バーコードの種類を判別
+        barcode_info = detect_and_format_barcode_info(barcode)
+        barcode_type = barcode_info['type']
+        
+        photos = []
+        product_code = None
+        order_code = None
+        manufacturing_number = None
+        
+        # バーコード種類に応じて処理
+        if barcode_type == 'order_code':
+            # 受注コードの場合
+            order_code = barcode
+            photos = OrderMasterService.get_photos_by_order_code(barcode)
+            
+        elif barcode_type == 'manufacturing_number':
+            # 製造番号の場合
+            manufacturing_number = barcode
+            # 製造番号から受注コードを取得
+            order_code = OrderMasterService.get_order_code_by_manufacturing_number(barcode)
+            if order_code:
+                photos = OrderMasterService.get_photos_by_order_code(order_code)
+            
+        elif barcode_type == 'production_process_code':
+            # 製作工程コードの場合
+            # 上8桁を製造番号として抽出
+            manufacturing_number = BarcodeDetector.get_manufacturing_number_from_production_process_code(barcode)
+            order_code = OrderMasterService.get_order_code_by_manufacturing_number(manufacturing_number)
+            if order_code:
+                photos = OrderMasterService.get_photos_by_order_code(order_code)
+                
+        elif barcode_type == 'part_number':
+            # 品番の場合
+            product_code = ProductMasterService.get_product_code_by_part_number(barcode)
+            if product_code:
+                photos = ProductPhotoService.get_photos_by_product_code(product_code)
         
         if not photos:
             return JsonResponse({
                 'success': False,
-                'error': f'受注コード {order_code} に対応する製品写真が見つかりませんでした'
+                'error': f'{barcode_info["display_name"]} {barcode} に対応する製品写真が見つかりませんでした',
+                'barcode_info': barcode_info
             })
+        
+        # 製品コードを取得（まだ取得できていない場合）
+        if not product_code and photos:
+            product_code = photos[0]['product_code']
         
         # JSON形式でレスポンス（画像URLを含む）
         photos_with_urls = []
@@ -95,8 +135,11 @@ def search_by_barcode(request):
         
         return JsonResponse({
             'success': True,
-            'order_code': order_code,
-            'product_code': photos[0]['product_code'],
+            'barcode_info': barcode_info,
+            'order_code': order_code or '',
+            'manufacturing_number': manufacturing_number or '',
+            'product_code': product_code or '',
+            'part_number': barcode if barcode_type == 'part_number' else '',
             'photos': photos_with_urls
         })
         
