@@ -4,11 +4,11 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- 読み取り・入力セクション -->
-    <div class="row mb-4">
-        <div class="col-lg-6 col-md-12">
+    <!-- PC用レイアウト（横並び） -->
+    <div class="row mb-4 d-none d-md-flex">
+        <div class="col-lg-6 col-md-6">
         <!-- バーコード読み取りカード -->
-        <div class="card">
+        <div class="card h-100">
             <div class="card-header bg-primary text-white text-center">
                 <h5 class="mb-0">
                     <i class="fas fa-barcode me-2"></i>
@@ -27,22 +27,6 @@
                         autofocus
                     >
                 </div>
-                
-                <!-- カメラ読み取りオプション -->
-                <div class="text-center mb-3">
-                    <p class="text-muted mb-2">または</p>
-                    <button id="startScanBtn" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-camera me-2"></i>
-                        カメラで読み取り
-                    </button>
-                    <button id="stopScanBtn" class="btn btn-danger btn-lg" style="display: none;">
-                        <i class="fas fa-stop me-2"></i>
-                        カメラ停止
-                    </button>
-                </div>
-                
-                <!-- バーコードスキャナー（カメラ） -->
-                <div id="reader" style="width: 100%; max-width: 400px; margin: 0 auto; display: none;"></div>
                 
                 <!-- 結果表示 -->
                 <div id="scanResult" class="mt-3" style="display: none;">
@@ -71,9 +55,9 @@
         </div>
         </div>
         
-        <div class="col-lg-6 col-md-12">
+        <div class="col-lg-6 col-md-6">
         <!-- 手動入力フォールバック -->
-        <div class="card">
+        <div class="card h-100">
             <div class="card-header bg-primary text-white text-center">
                 <h5 class="mb-0">
                     <i class="fas fa-keyboard me-2"></i>
@@ -102,6 +86,102 @@
                 </form>
             </div>
         </div>
+        </div>
+    </div>
+    
+    <!-- モバイル用レイアウト（縦並び） -->
+    <div class="d-md-none">
+        <!-- バーコード読み取りカード（モバイル） -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white text-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-barcode me-2"></i>
+                    バーコード読み取り
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <!-- バーコードリーダー入力フィールド -->
+                <div class="mb-4">
+                    <input 
+                        type="text" 
+                        class="form-control form-control-lg" 
+                        id="barcodeReaderInputMobile" 
+                        placeholder="ここにフォーカスして読み取ってください"
+                        autocomplete="off"
+                    >
+                </div>
+                
+                <!-- カメラ読み取りオプション（モバイルのみ） -->
+                <div class="text-center mb-3">
+                    <p class="text-muted mb-2">または</p>
+                    <button id="startScanBtn" class="btn btn-outline-primary btn-lg w-100">
+                        <i class="fas fa-camera me-2"></i>
+                        カメラで読み取り
+                    </button>
+                    <button id="stopScanBtn" class="btn btn-danger btn-lg w-100" style="display: none;">
+                        <i class="fas fa-stop me-2"></i>
+                        カメラ停止
+                    </button>
+                </div>
+                
+                <!-- バーコードスキャナー（カメラ） -->
+                <div id="reader" style="width: 100%; display: none;"></div>
+                
+                <!-- 結果表示 -->
+                <div id="scanResultMobile" class="mt-3" style="display: none;">
+                    <div class="alert alert-success">
+                        <strong>読み取り成功:</strong>
+                        <span id="barcodeValueMobile"></span>
+                    </div>
+                </div>
+                
+                <!-- エラー表示 -->
+                <div id="scanErrorMobile" class="mt-3" style="display: none;">
+                    <div class="alert alert-danger">
+                        <strong>エラー:</strong>
+                        <span id="errorMessageMobile"></span>
+                    </div>
+                </div>
+                
+                <!-- ローディング表示 -->
+                <div id="loadingMobile" class="text-center mt-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">読み込み中...</span>
+                    </div>
+                    <p class="mt-2">製品写真を検索中...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 手動入力フォールバック（モバイル） -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white text-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-keyboard me-2"></i>
+                    手動入力
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form id="manualSearchFormMobile">
+                    <div class="mb-4">
+                        <label for="part_number_mobile" class="form-label">品番</label>
+                        <input 
+                            type="text" 
+                            class="form-control form-control-lg" 
+                            id="part_number_mobile" 
+                            name="part_number" 
+                            placeholder="品番を直接入力"
+                        >
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search me-2"></i>
+                            検索
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     
@@ -142,43 +222,49 @@
     let isScanning = false;
     let barcodeReaderTimeout;
 
-    // バーコードリーダー入力フィールドの処理
+    // バーコードリーダー入力フィールドの処理（PC用とモバイル用）
     const barcodeReaderInput = document.getElementById('barcodeReaderInput');
+    const barcodeReaderInputMobile = document.getElementById('barcodeReaderInputMobile');
     
-    // フォーカス時に入力をクリア
-    barcodeReaderInput.addEventListener('focus', function() {
-        this.value = '';
-    });
-    
-    // バーコードリーダーからの入力処理
-    barcodeReaderInput.addEventListener('input', function() {
-        // 既存のタイムアウトをクリア
-        if (barcodeReaderTimeout) {
-            clearTimeout(barcodeReaderTimeout);
-        }
+    // 両方の入力フィールドに同じイベントリスナーを設定
+    [barcodeReaderInput, barcodeReaderInputMobile].forEach(input => {
+        if (!input) return;
         
-        // 少し待ってから処理（連続入力対応）
-        barcodeReaderTimeout = setTimeout(() => {
-            const value = this.value.trim();
-            if (value) {
-                // バーコード読み取り成功として処理
-                onBarcodeSuccess(value);
-                // 入力フィールドをクリア
-                this.value = '';
+        // フォーカス時に入力をクリア
+        input.addEventListener('focus', function() {
+            this.value = '';
+        });
+        
+        // バーコードリーダーからの入力処理
+        input.addEventListener('input', function() {
+            // 既存のタイムアウトをクリア
+            if (barcodeReaderTimeout) {
+                clearTimeout(barcodeReaderTimeout);
             }
-        }, 100);
-    });
-    
-    // Enterキーでも処理
-    barcodeReaderInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const value = this.value.trim();
-            if (value) {
-                onBarcodeSuccess(value);
-                this.value = '';
+            
+            // 少し待ってから処理（連続入力対応）
+            barcodeReaderTimeout = setTimeout(() => {
+                const value = this.value.trim();
+                if (value) {
+                    // バーコード読み取り成功として処理
+                    onBarcodeSuccess(value);
+                    // 入力フィールドをクリア
+                    this.value = '';
+                }
+            }, 100);
+        });
+        
+        // Enterキーでも処理
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                if (value) {
+                    onBarcodeSuccess(value);
+                    this.value = '';
+                }
             }
-        }
+        });
     });
 
     // カメラバーコードスキャナー開始
@@ -204,7 +290,8 @@
         document.getElementById('scanError').style.display = 'none';
         
         // バーコードリーダー入力を無効化（カメラ使用中）
-        barcodeReaderInput.disabled = true;
+        if (barcodeReaderInput) barcodeReaderInput.disabled = true;
+        if (barcodeReaderInputMobile) barcodeReaderInputMobile.disabled = true;
 
         // カメラ設定
         const config = {
@@ -246,8 +333,14 @@
             document.getElementById('reader').style.display = 'none';
             
             // バーコードリーダー入力を有効化
-            barcodeReaderInput.disabled = false;
-            barcodeReaderInput.focus();
+            if (barcodeReaderInput) {
+                barcodeReaderInput.disabled = false;
+                barcodeReaderInput.focus();
+            }
+            if (barcodeReaderInputMobile) {
+                barcodeReaderInputMobile.disabled = false;
+                barcodeReaderInputMobile.focus();
+            }
         }).catch(err => {
             console.error('スキャナー停止エラー:', err);
         });
@@ -261,10 +354,20 @@
             stopBarcodeScanner();
         }
         
-        // 結果表示
-        document.getElementById('barcodeValue').textContent = orderCode;
-        document.getElementById('scanResult').style.display = 'block';
-        document.getElementById('loading').style.display = 'block';
+        // 結果表示（PC用とモバイル用の両方を処理）
+        const barcodeValue = document.getElementById('barcodeValue');
+        const scanResult = document.getElementById('scanResult');
+        const loading = document.getElementById('loading');
+        const barcodeValueMobile = document.getElementById('barcodeValueMobile');
+        const scanResultMobile = document.getElementById('scanResultMobile');
+        const loadingMobile = document.getElementById('loadingMobile');
+        
+        if (barcodeValue) barcodeValue.textContent = orderCode;
+        if (scanResult) scanResult.style.display = 'block';
+        if (loading) loading.style.display = 'block';
+        if (barcodeValueMobile) barcodeValueMobile.textContent = orderCode;
+        if (scanResultMobile) scanResultMobile.style.display = 'block';
+        if (loadingMobile) loadingMobile.style.display = 'block';
         
         // サーバーに送信
         searchByOrderCode(orderCode);
@@ -282,7 +385,10 @@
         })
         .then(response => response.json())
         .then(data => {
-            document.getElementById('loading').style.display = 'none';
+            const loading = document.getElementById('loading');
+            const loadingMobile = document.getElementById('loadingMobile');
+            if (loading) loading.style.display = 'none';
+            if (loadingMobile) loadingMobile.style.display = 'none';
             
             if (data.success) {
                 // 写真を表示
@@ -293,7 +399,10 @@
         })
         .catch(error => {
             console.error('API エラー:', error);
-            document.getElementById('loading').style.display = 'none';
+            const loading = document.getElementById('loading');
+            const loadingMobile = document.getElementById('loadingMobile');
+            if (loading) loading.style.display = 'none';
+            if (loadingMobile) loadingMobile.style.display = 'none';
             showError('サーバーとの通信に失敗しました');
         });
     }
@@ -368,28 +477,53 @@
         document.getElementById('scanError').style.display = 'none';
         
         // バーコードリーダー入力に再フォーカス
-        barcodeReaderInput.focus();
+        if (window.innerWidth >= 768 && barcodeReaderInput) {
+            barcodeReaderInput.focus();
+        } else if (barcodeReaderInputMobile) {
+            barcodeReaderInputMobile.focus();
+        }
     }
 
     function showError(message) {
-        document.getElementById('errorMessage').textContent = message;
-        document.getElementById('scanError').style.display = 'block';
-        document.getElementById('scanResult').style.display = 'none';
+        const errorMessage = document.getElementById('errorMessage');
+        const scanError = document.getElementById('scanError');
+        const scanResult = document.getElementById('scanResult');
+        const errorMessageMobile = document.getElementById('errorMessageMobile');
+        const scanErrorMobile = document.getElementById('scanErrorMobile');
+        const scanResultMobile = document.getElementById('scanResultMobile');
+        
+        if (errorMessage) errorMessage.textContent = message;
+        if (scanError) scanError.style.display = 'block';
+        if (scanResult) scanResult.style.display = 'none';
+        if (errorMessageMobile) errorMessageMobile.textContent = message;
+        if (scanErrorMobile) scanErrorMobile.style.display = 'block';
+        if (scanResultMobile) scanResultMobile.style.display = 'none';
     }
 
-    // 手動検索の処理
+    // 手動検索の処理（PC用とモバイル用）
     const manualSearchForm = document.getElementById('manualSearchForm');
-    manualSearchForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const partNumber = document.getElementById('part_number').value.trim();
-        if (partNumber) {
-            searchByPartNumber(partNumber);
-        }
+    const manualSearchFormMobile = document.getElementById('manualSearchFormMobile');
+    
+    [manualSearchForm, manualSearchFormMobile].forEach(form => {
+        if (!form) return;
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const partNumberInput = this.querySelector('input[name="part_number"]');
+            if (partNumberInput) {
+                const partNumber = partNumberInput.value.trim();
+                if (partNumber) {
+                    searchByPartNumber(partNumber);
+                }
+            }
+        });
     });
     
     // 品番で検索
     function searchByPartNumber(partNumber) {
-        document.getElementById('loading').style.display = 'block';
+        const loading = document.getElementById('loading');
+        const loadingMobile = document.getElementById('loadingMobile');
+        if (loading) loading.style.display = 'block';
+        if (loadingMobile) loadingMobile.style.display = 'block';
         
         fetch('/api/part-number-search/', {
             method: 'POST',
@@ -402,7 +536,10 @@
         })
         .then(response => response.json())
         .then(data => {
-            document.getElementById('loading').style.display = 'none';
+            const loading = document.getElementById('loading');
+            const loadingMobile = document.getElementById('loadingMobile');
+            if (loading) loading.style.display = 'none';
+            if (loadingMobile) loadingMobile.style.display = 'none';
             
             if (data.success) {
                 displayPhotos(data);
@@ -412,7 +549,10 @@
         })
         .catch(error => {
             console.error('API エラー:', error);
-            document.getElementById('loading').style.display = 'none';
+            const loading = document.getElementById('loading');
+            const loadingMobile = document.getElementById('loadingMobile');
+            if (loading) loading.style.display = 'none';
+            if (loadingMobile) loadingMobile.style.display = 'none';
             showError('サーバーとの通信に失敗しました');
         });
     }
@@ -427,20 +567,38 @@
         document.getElementById('photoSection').style.display = 'none';
         
         // 結果表示をクリア
-        document.getElementById('scanResult').style.display = 'none';
-        document.getElementById('scanError').style.display = 'none';
+        const scanResult = document.getElementById('scanResult');
+        const scanError = document.getElementById('scanError');
+        const scanResultMobile = document.getElementById('scanResultMobile');
+        const scanErrorMobile = document.getElementById('scanErrorMobile');
+        if (scanResult) scanResult.style.display = 'none';
+        if (scanError) scanError.style.display = 'none';
+        if (scanResultMobile) scanResultMobile.style.display = 'none';
+        if (scanErrorMobile) scanErrorMobile.style.display = 'none';
         
         // 入力フィールドをクリア
-        barcodeReaderInput.value = '';
-        document.getElementById('part_number').value = '';
+        if (barcodeReaderInput) barcodeReaderInput.value = '';
+        if (barcodeReaderInputMobile) barcodeReaderInputMobile.value = '';
+        const partNumber = document.getElementById('part_number');
+        const partNumberMobile = document.getElementById('part_number_mobile');
+        if (partNumber) partNumber.value = '';
+        if (partNumberMobile) partNumberMobile.value = '';
         
         // バーコードリーダー入力にフォーカス
-        barcodeReaderInput.focus();
+        if (window.innerWidth >= 768 && barcodeReaderInput) {
+            barcodeReaderInput.focus();
+        } else if (barcodeReaderInputMobile) {
+            barcodeReaderInputMobile.focus();
+        }
     }
     
     // ページロード時にバーコードリーダー入力にフォーカス
     window.addEventListener('load', function() {
-        barcodeReaderInput.focus();
+        if (window.innerWidth >= 768 && barcodeReaderInput) {
+            barcodeReaderInput.focus();
+        } else if (barcodeReaderInputMobile) {
+            barcodeReaderInputMobile.focus();
+        }
     });
 </script>
 {% endblock %}
