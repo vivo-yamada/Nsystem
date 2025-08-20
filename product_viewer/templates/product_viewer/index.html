@@ -511,12 +511,12 @@
                              style="height: 300px; object-fit: contain; background: #f8f9fa; cursor: pointer;"
                              loading="lazy"
                              onclick="showImage('/image/${photo.product_photo_code}/', '${data.product_code}', '${photo.product_photo_code}')"
-                             data-remarks="${photo.remarks || ''}">
+                             data-remarks="${photo.remarks || ''}"
+                             data-hno="${photo.hno || '-'}">
                         <div class="card-body">
                             <p class="card-text">
                                 <small class="text-muted">
-                                    HNO: ${photo.hno || '-'}<br>
-                                    ${photo.remarks || ''}
+                                    ${photo.hno || '-'} ${photo.remarks ? ' - ' + photo.remarks : ''}
                                 </small>
                             </p>
                         </div>

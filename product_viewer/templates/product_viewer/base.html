@@ -143,12 +143,14 @@
                         if (match) {
                             // 備考情報をdata属性から取得
                             const remarks = img.getAttribute('data-remarks') || '';
+                            const hno = img.getAttribute('data-hno') || '-';
                             
                             imageList.push({
                                 src: match[1],
                                 productCode: match[2],
                                 photoCode: match[3],
                                 remarks: remarks,
+                                hno: hno,
                                 element: img
                             });
                         }
@@ -186,12 +188,18 @@
             document.getElementById('modalCounter').textContent = 
                 `(${currentImageIndex + 1}/${imageList.length})`;
             
-            // 備考情報を更新
+            // 連番と備考情報を更新
             const remarksDiv = document.getElementById('modalRemarks');
             const remarksText = document.getElementById('modalRemarksText');
             
+            // 連番と備考を組み合わせて表示
+            let displayText = currentImage.hno || '-';
             if (currentImage.remarks && currentImage.remarks.trim() !== '') {
-                remarksText.textContent = currentImage.remarks;
+                displayText += ' - ' + currentImage.remarks;
+            }
+            
+            if (displayText && displayText !== '-') {
+                remarksText.textContent = displayText;
                 remarksDiv.style.display = 'block';
             } else {
                 remarksDiv.style.display = 'none';
