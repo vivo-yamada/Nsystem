@@ -1,4 +1,4 @@
-# SubSystems 製品写真管理システム IISデプロイ手順書
+# Nsystem IISデプロイ手順書
 
 ## 目次
 1. [はじめに](#はじめに)
@@ -332,11 +332,25 @@ icacls C:\NAS_mount /grant "IIS_IUSRS:(OI)(CI)RX"
 SQL ServerはWebサーバーと同じ端末にインストールされているため、`settings_production.py`で接続情報を設定：
 
 ```python
-# .envファイルまたは環境変数で以下を設定
-DB_HOST = 'localhost\\SQLEXPRESS'  # SQL Serverのインスタンス名
-DB_NAME = 'your_database_name'      # データベース名
-DB_USER = 'your_username'           # ユーザー名
-DB_PASSWORD = 'your_password'       # パスワード
+DATABASES = {
+    'default': {
+        'ENGINE': 'mssql',
+        'NAME': 'your_database_name',
+        'USER': 'your_username',
+        'PASSWORD': 'your_password',
+        'HOST': 'localhost\\SQLEXPRESS',  # または 'localhost,1433'
+        'PORT': '',
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+        },
+    }
+}
+```
+
+必要に応じてODBCドライバーをインストール：
+```cmd
+# Microsoft ODBC Driver for SQL Serverのインストール
+# https://docs.microsoft.com/ja-jp/sql/connect/odbc/download-odbc-driver-for-sql-server
 ```
 
 ### 2. ネットワークドライブへのアクセス設定
